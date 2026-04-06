@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nickradar — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; color: #000; font-family: 'Share Tech Mono', 'Courier New', monospace; font-size: 13px; }
+    #screen-login { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-wrap { width: 300px; }
+    .login-logo { font-size: 20px; font-weight: bold; letter-spacing: 4px; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
+    .login-logo img { height: 28px; width: auto; }
+    .login-subtitle { font-size: 10px; letter-spacing: 3px; color: #666; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 8px; text-transform: uppercase; }
+    .login-wrap label { font-size: 10px; letter-spacing: 2px; color: #666; display: block; margin-bottom: 4px; margin-top: 12px; text-transform: uppercase; }
+    .login-wrap input { border: 1px solid #ccc; padding: 8px 10px; font-size: 13px; width: 100%; outline: none; font-family: inherit; }
+    .login-wrap input:focus { border-color: #000; }
+    .btn-main { background: #000; color: #fff; border: none; padding: 10px; font-size: 12px; cursor: pointer; width: 100%; font-family: inherit; letter-spacing: 2px; margin-top: 20px; text-transform: uppercase; }
+    .btn-main:hover { background: #333; }
+    .login-error { color: red; font-size: 11px; margin-top: 8px; }
+    #screen-admin { display: none; }
+    .top-bar { background: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; }
+    .top-bar-logo { font-size: 14px; font-weight: bold; letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
+    .top-bar-logo img { height: 26px; width: auto; }
+    .top-bar-badge { font-size: 9px; letter-spacing: 2px; background: #000; color: #00ff41; padding: 2px 8px; margin-left: 8px; }
+    .top-bar-right button { background: none; border: 1px solid #ccc; color: #666; padding: 4px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
+    .top-bar-right button:hover { border-color: #000; color: #000; }
+    .tabs { border-bottom: 2px solid #000; display: flex; }
+    .tab { padding: 10px 20px; cursor: pointer; font-size: 11px; border: none; background: none; border-right: 1px solid #eee; font-family: inherit; letter-spacing: 2px; text-transform: uppercase; }
+    .tab:hover { background: #f5f5f5; }
+    .tab.active { background: #000; color: #fff; }
+    .content { padding: 24px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { background: #000; color: #fff; padding: 8px 10px; text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    tr:hover td { background: #fafafa; }
+    .status-pending { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; border: 1px solid #ccc; color: #999; text-transform: uppercase; }
+    .status-active { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #00ff41; color: #000; text-transform: uppercase; }
+    .status-blocked { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #000; color: #fff; text-transform: uppercase; }
+    .status-finished { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #eee; color: #999; text-transform: uppercase; }
+    .btn-sm { background: #fff; border: 1px solid #ccc; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; letter-spacing: 1px; margin-right: 4px; white-space: nowrap; }
+    .btn-sm:hover { border-color: #000; }
+    .btn-sm-green { background: #00ff41; border: 1px solid #000; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; font-weight: bold; margin-right: 4px; white-space: nowrap; }
+    .btn-sm-danger { background: #fff; border: 1px solid #cc0000; color: #cc0000; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; margin-right: 4px; white-space: nowrap; }
+    .btn-sm-danger:hover { background: #cc0000; color: #fff; }
+    .btn-sm-orange { background: #fff; border: 1px solid #cc6600; color: #cc6600; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; margin-right: 4px; white-space: nowrap; }
+    .btn-sm-orange:hover { background: #cc6600; color: #fff; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .count { font-size: 10px; color: #999; letter-spacing: 1px; margin-left: auto; }
+    .loading { padding: 40px; text-align: center; color: #ccc; letter-spacing: 2px; font-size: 11px; }
+    .empty { padding: 40px; text-align: center; color: #ccc; letter-spacing: 2px; font-size: 11px; }
+    .alert-box { border: 1px solid #cc6600; padding: 12px 16px; margin-bottom: 16px; font-size: 11px; line-height: 1.8; }
+    .alert-box-security { background: #fff8e6; }
+    .alert-box-payment { background: #e6f0ff; border-color: #0055cc; }
+    .participant-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #ddd; max-width: 760px; margin-top: 16px; }
+    .participant-cell { border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 10px 12px; min-height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 3px; position: relative; }
+    .participant-cell:nth-child(3n) { border-right: none; }
+    .participant-cell.inactive-cell { background: #f5f5f5; opacity: 0.6; }
+    .participant-cell.empty-cell { background: #fafafa; }
+    .participant-nick { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
+    .participant-code { font-size: 10px; color: #00aa2a; letter-spacing: 2px; }
+    .participant-status { font-size: 9px; color: #bbb; letter-spacing: 1px; text-transform: uppercase; }
+    .participant-status.online { color: #00aa2a; }
+    .participant-inv-btn { position: absolute; top: 4px; right: 4px; font-size: 9px; background: none; border: none; color: #ddd; cursor: pointer; font-family: inherit; padding: 2px 4px; }
+    .participant-inv-btn:hover { color: #cc0000; }
+    .back-btn { font-size: 11px; background: none; border: 1px solid #ccc; padding: 4px 12px; cursor: pointer; font-family: inherit; margin-bottom: 16px; }
+    .back-btn:hover { border-color: #000; }
+  </style>
+</head>
+<body>
+
+<div id="screen-login">
+  <div class="login-wrap">
+    <div class="login-logo"><img src="nr_logo.png" alt="nickradar" />nickradar</div>
+    <div class="login-subtitle">Internal Admin Panel</div>
+    <label>Admin Key</label>
+    <input type="password" id="admin-key" onkeydown="if(event.key==='Enter')doLogin()" />
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-main" onclick="doLogin()">Enter</button>
+  </div>
+</div>
+
+<div id="screen-admin">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;">
+      <div class="top-bar-logo"><img src="nr_logo.png" alt="nickradar" />nickradar</div>
+      <span class="top-bar-badge">Admin</span>
+    </div>
+    <div class="top-bar-right"><button onclick="doLogout()">Logout</button></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('event-admins')">Event Admins</button>
+    <button class="tab" onclick="showTab('events')">Events</button>
+    <button class="tab" onclick="showTab('invoices')">Invoices</button>
+    <button class="tab" onclick="showTab('reports')">Reports</button>
+  </div>
+  <div class="content" id="tab-content"><div class="loading">Loading...</div></div>
+</div>
+
+<script>
+var API = 'https://app.nickradar.com';
+var adminKey = localStorage.getItem('nr_admin_key') || '';
+
+window.onload = function() { if (adminKey) verifyAndShow(); else showLogin(); };
+
+async function verifyAndShow() {
+  try {
+    var r=await fetch(API+'/api/admin/event-admins', {headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (d.success) showAdmin(); else { localStorage.removeItem('nr_admin_key'); adminKey=''; showLogin(); }
+  } catch(e) { showLogin(); }
+}
+
+function showLogin() { document.getElementById('screen-login').style.display='flex'; document.getElementById('screen-admin').style.display='none'; }
+function showAdmin() { document.getElementById('screen-login').style.display='none'; document.getElementById('screen-admin').style.display='block'; loadEventAdmins(); }
+
+async function doLogin() {
+  var key=document.getElementById('admin-key').value.trim();
+  var err=document.getElementById('login-error');
+  err.textContent='';
+  if (!key) return;
+  try {
+    var r=await fetch(API+'/api/admin/event-admins', {headers:{'x-admin-key':key}});
+    var d=await r.json();
+    if (!d.success) { err.textContent='Invalid admin key.'; return; }
+    adminKey=key; localStorage.setItem('nr_admin_key',key); showAdmin();
+  } catch(e) { err.textContent='Connection error.'; }
+}
+
+function doLogout() { localStorage.removeItem('nr_admin_key'); adminKey=''; document.getElementById('admin-key').value=''; showLogin(); }
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t,i) {
+    t.classList.toggle('active', ['event-admins','events','invoices','reports'][i]===name);
+  });
+  if (name==='event-admins') loadEventAdmins();
+  else if (name==='events') loadEvents();
+  else if (name==='invoices') loadInvoices();
+  else if (name==='reports') loadReports();
+}
+
+function setContent(html) { document.getElementById('tab-content').innerHTML=html; }
+function fmt(s) { if(!s) return '—'; var d=new Date(s); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function loadEventAdmins() {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/event-admins', {headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (!d.success) { setContent('<div class="empty">Error.</div>'); return; }
+    var rows=d.admins.map(function(a){
+      var actions='';
+      if (a.status==='pending') actions+='<button class="btn-sm-green" onclick="activateAdmin('+a.id+')">Activate</button>';
+      if (a.status==='active')  actions+='<button class="btn-sm-danger" onclick="blockAdmin('+a.id+')">Block</button>';
+      if (a.status==='blocked') actions+='<button class="btn-sm" onclick="activateAdmin('+a.id+')">Unblock</button>';
+      actions+='<button class="btn-sm" onclick="setPassword('+a.id+',\''+esc(a.org_name)+'\')">Set PW</button>';
+      return '<tr><td>'+a.id+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
+        +'<td><span class="status-'+a.status+'">'+a.status.toUpperCase()+'</span></td><td>'+fmt(a.created_at)+'</td><td>'+fmt(a.last_login_at)+'</td><td>'+actions+'</td></tr>';
+    }).join('');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadEventAdmins()">↻ Refresh</button><span class="count">'+d.admins.length+' event admins</span></div>'
+      +'<table><thead><tr><th>ID</th><th>Organization</th><th>Contact</th><th>Email</th><th>Status</th><th>Registered</th><th>Last Login</th><th>Actions</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="8" class="empty">No event admins yet.</td></tr>')+'</tbody></table>');
+  } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
+}
+
+async function activateAdmin(id) {
+  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/activate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+async function blockAdmin(id) {
+  if(!confirm('Block this Event Admin?')) return;
+  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/block',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+async function setPassword(id, orgName) {
+  var pw=prompt('Set new password for "'+orgName+'" (min. 8 characters):');
+  if(pw===null) return;
+  if(!pw||pw.length<8){alert('Minimum 8 characters.');return;}
+  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/set-password',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({password:pw})}); var d=await r.json(); if(d.success) alert('Password set. Email sent.'); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+
+async function loadEvents() {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/events', {headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (!d.success) { setContent('<div class="empty">Error.</div>'); return; }
+    var events=d.events;
+    var needsSecurity=events.filter(function(e){return e.status==='pending'&&!e.security_confirmed;});
+    var needsPayment=events.filter(function(e){return e.status==='pending'&&e.security_confirmed&&!e.paid;});
+    var alertHtml='';
+    if (needsSecurity.length>0) {
+      alertHtml+='<div class="alert-box alert-box-security"><strong>⏳ '+needsSecurity.length+' event(s) awaiting security confirmation:</strong><br><br>'
+        +needsSecurity.map(function(e){
+          return '<strong>'+esc(e.event_name)+'</strong> · '+esc(e.admin_org)
+            +' · '+(e.security_name?esc(e.security_name)+' ('+esc(e.security_phone)+')':'no security contact')
+            +' &nbsp;<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Confirm Security</button>';
+        }).join('<br>')
+        +'</div>';
+    }
+    if (needsPayment.length>0) {
+      alertHtml+='<div class="alert-box alert-box-payment"><strong>⏳ '+needsPayment.length+' event(s) awaiting payment confirmation:</strong><br><br>'
+        +needsPayment.map(function(e){
+          return '<strong>'+esc(e.event_name)+'</strong> · '+esc(e.admin_org)
+            +' · '+esc(e.admin_email)
+            +' &nbsp;<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Confirm Payment</button>';
+        }).join('<br>')
+        +'</div>';
+    }
+    var rows=events.map(function(e){
+      var pendingInfo='';
+      if (e.status==='pending') {
+        if (!e.security_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ security</span>';
+        else if (!e.paid)          pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ payment</span>';
+        else                       pendingInfo=' <span style="color:green;font-size:9px;">✓ ready</span>';
+      }
+      var secInfo=e.security_name
+        ?esc(e.security_name)+'<br><span style="font-size:10px;color:#999;">'+esc(e.security_phone)+'</span>'
+          +(e.security_confirmed?' <span style="color:green;">✓</span>':' <span style="color:#cc6600;">⏳</span>')
+        :'—';
+      var actions='';
+      if (e.status==='active'||e.status==='pending') {
+        actions+='<button class="btn-sm-danger" onclick="stopEvent('+e.id+')">Stop</button>';
+        actions+='<button class="btn-sm" onclick="showDuration('+e.id+',\''+e.ends_at+'\')">Duration</button>';
+      }
+      if (!e.security_confirmed&&e.status==='pending') {
+        actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Security</button>';
+      }
+      if (e.security_confirmed&&!e.paid&&e.status==='pending') {
+        actions+='<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>';
+      }
+      actions+='<button class="btn-sm" onclick="loadParticipantList('+e.id+',\''+esc(e.event_name)+'\')">Participants</button>';
+      return '<tr><td>'+e.id+'</td><td><strong>'+esc(e.event_name)+'</strong></td><td>'+esc(e.admin_org)+'</td><td>'+esc(e.admin_email)+'</td>'
+        +'<td><span class="status-'+e.status+'">'+e.status.toUpperCase()+'</span>'+pendingInfo+'</td>'
+        +'<td>'+fmt(e.start_at)+'</td><td>'+fmt(e.ends_at)+'</td>'
+        +'<td>'+e.sticker_count+'</td><td>'+e.activated_count+'</td><td>'+e.connection_count+'</td>'
+        +'<td>'+secInfo+'</td><td>'+actions+'</td></tr>';
+    }).join('');
+    setContent(alertHtml
+      +'<div class="toolbar"><button class="btn-sm" onclick="loadEvents()">↻ Refresh</button><span class="count">'+events.length+' events</span></div>'
+      +'<table><thead><tr><th>ID</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Security</th><th>Actions</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="12" class="empty">No events yet.</td></tr>')+'</tbody></table>');
+  } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
+}
+
+async function confirmSecurity(id) {
+  if (!confirm('Confirm security contact for this event?\n\nThis allows the event to proceed to payment and start.')) return;
+  try {
+    var r=await fetch(API+'/api/admin/events/'+id+'/confirm-security',{method:'POST',headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (d.success) loadEvents(); else alert('Error: '+d.error);
+  } catch(e){alert('Connection error.');}
+}
+
+async function confirmPayment(id) {
+  if (!confirm('Confirm payment for this event?\n\nOnly do this after verifying payment was received.\nThis will allow the event to start at the scheduled time.')) return;
+  try {
+    var r=await fetch(API+'/api/admin/events/'+id+'/confirm-payment',{method:'POST',headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (d.success) loadEvents(); else alert('Error: '+d.error);
+  } catch(e){alert('Connection error.');}
+}
+
+async function stopEvent(id) {
+  if(!confirm('Stop this event permanently?\nAll participant data will be deleted.\nThis cannot be undone.')) return;
+  try { var r=await fetch(API+'/api/admin/events/'+id+'/stop',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEvents(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+
+async function showDuration(id, currentEndsAt) {
+  var current=new Date(currentEndsAt).toISOString().slice(0,16);
+  var input=prompt('Set new end time (UTC):\n\nCurrent: '+current, current);
+  if(input===null) return;
+  try { var r=await fetch(API+'/api/admin/events/'+id+'/duration',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({ends_at:new Date(input).toISOString()})}); var d=await r.json(); if(d.success) loadEvents(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+
+async function loadParticipantList(eventId, eventName) {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/events/'+eventId+'/stickers',{headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (!d.success){setContent('<div class="empty">Error.</div>');return;}
+    var stickers=d.stickers, perRow=3, total=stickers.length;
+    var filled=total%perRow===0?total:total+(perRow-(total%perRow));
+    var html='<button class="back-btn" onclick="loadEvents()">← Back to Events</button>'
+      +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">'+esc(eventName)+'</div>'
+      +'<div class="participant-list-grid">';
+    for(var i=0;i<filled;i++){
+      if(i<stickers.length){
+        var s=stickers[i], isInactive=s.status==='invalidated'||s.status==='blocked';
+        var sLabel={unused:'not activated',active:'active',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
+        var sClass=s.status==='active'?'participant-status online':'participant-status';
+        var invBtn=s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="invalidateSticker('+s.id+','+eventId+',\''+esc(eventName)+'\')" title="Invalidate">✕</button>':'';
+        html+='<div class="participant-cell'+(isInactive?' inactive-cell':'')+'">'+invBtn
+          +'<div class="participant-nick">'+esc(s.nickname)+'</div>'
+          +'<div class="participant-code">'+s.code+'</div>'
+          +'<div class="'+sClass+'">'+sLabel+'</div></div>';
+      } else { html+='<div class="participant-cell empty-cell"></div>'; }
+    }
+    html+='</div>';
+    setContent(html);
+  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+
+async function invalidateSticker(stickerId, eventId, eventName) {
+  if(!confirm('Invalidate this sticker?\nParticipant will be logged out.')) return;
+  try { var r=await fetch(API+'/api/admin/stickers/'+stickerId+'/invalidate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadParticipantList(eventId,eventName); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+
+async function loadInvoices() {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/invoices',{headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if(!d.success){setContent('<div class="empty">Error.</div>');return;}
+    var rows=d.invoices.map(function(i){
+      return '<tr><td>'+esc(i.invoice_number||'—')+'</td><td>'+esc(i.org_name)+'</td><td>'+esc(i.event_name||'—')+'</td>'
+        +'<td>'+i.quantity+'</td><td>€'+parseFloat(i.unit_price||0).toFixed(2)+'</td>'
+        +'<td><strong>€'+parseFloat(i.total||0).toFixed(2)+'</strong></td>'
+        +'<td>'+esc(i.payment_provider||'—')+'</td><td>'+fmt(i.paid_at)+'</td><td>'+fmt(i.created_at)+'</td></tr>';
+    }).join('');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadInvoices()">↻ Refresh</button><span class="count">'+d.invoices.length+' invoices</span></div>'
+      +'<table><thead><tr><th>No.</th><th>Org</th><th>Event</th><th>Qty</th><th>Unit</th><th>Total</th><th>Provider</th><th>Paid</th><th>Created</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="9" class="empty">No invoices yet.</td></tr>')+'</tbody></table>');
+  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+
+async function loadReports() {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/reports',{headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if(!d.success){setContent('<div class="empty">Error.</div>');return;}
+    var rows=d.reports.map(function(r){
+      return '<tr><td>'+esc(r.event_name)+'</td><td>'+esc(r.reporter_nickname)+'</td><td>'+esc(r.reported_nickname)+'</td>'
+        +'<td>'+esc(r.reason)+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
+        +'<td>'+fmt(r.created_at)+'</td></tr>';
+    }).join('');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button><span class="count">'+d.reports.length+' reports</span></div>'
+      +'<table><thead><tr><th>Event</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="6" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
+  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+</script>
+</body>
+</html>
