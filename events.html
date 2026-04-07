@@ -522,9 +522,13 @@ function buildEasBox(e) {
   if (e.status==='finished') {
     line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
-    var finStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:e.timezone||'Europe/Vienna'});
+    var finTime=e.stopped_at?new Date(e.stopped_at):new Date(e.ends_at);
+    var finStr=finTime.toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:e.timezone||'Europe/Vienna'});
     var byStr=e.stopped_by?' · '+e.stopped_by.replace(/_/g,' '):'';
-    line3='<div class="eas-line" style="color:#bbb;">Finished '+finStr+byStr+'</div>';
+    var durMs=finTime-new Date(e.start_at);
+    var dH=Math.floor(durMs/3600000),dM=Math.floor((durMs%3600000)/60000);
+    var durStr=String(dH).padStart(2,'0')+':'+String(dM).padStart(2,'0');
+    line3='<div class="eas-line" style="color:#bbb;">Finished '+finStr+byStr+' · '+durStr+'h</div>';
   } else if (!e.reports_contact_confirmed) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
