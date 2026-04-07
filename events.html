@@ -131,12 +131,18 @@
     <label>Business Type *</label>
     <select id="reg-business-type" style="border:1px solid #ccc;padding:8px 10px;font-size:13px;width:100%;outline:none;font-family:inherit;background:#fff;margin-top:4px;">
       <option value="">— select —</option>
-      <option value="club_venue">Club / Venue</option>
-      <option value="festival">Festival</option>
-      <option value="corporate">Corporate Event</option>
-      <option value="university">University</option>
-      <option value="private">Private Organizer</option>
       <option value="agency_promoter">Agency / Promoter</option>
+      <option value="club_bar_lounge">Club / Bar / Lounge</option>
+      <option value="conference_congress">Conference / Congress</option>
+      <option value="corporate_networking">Corporate / Networking Event</option>
+      <option value="cruise_travel">Cruise / Travel Event</option>
+      <option value="festival_open_air">Festival / Open Air Organizer</option>
+      <option value="hotel_resort">Hotel / Resort / Hospitality</option>
+      <option value="music_concert">Music / Concert Venue</option>
+      <option value="sports_gaming">Sports Event / Gaming</option>
+      <option value="team_building">Team Building Event</option>
+      <option value="university_campus">University / Campus Event</option>
+      <option value="other">Other</option>
     </select>
     <label>Country *</label>
     <select id="reg-country" style="border:1px solid #ccc;padding:8px 10px;font-size:13px;width:100%;outline:none;font-family:inherit;background:#fff;margin-top:4px;">
@@ -770,7 +776,7 @@ async function loadAccount() {
     if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
     var a=d.admin;
     var ro='background:#f5f5f5;color:#999;';
-    var bTypeLabels={club_venue:'Club / Venue',festival:'Festival',corporate:'Corporate Event',university:'University',private:'Private Organizer',agency_promoter:'Agency / Promoter'};
+    var bTypeLabels={agency_promoter:'Agency / Promoter',club_bar_lounge:'Club / Bar / Lounge',conference_congress:'Conference / Congress',corporate_networking:'Corporate / Networking Event',cruise_travel:'Cruise / Travel Event',festival_open_air:'Festival / Open Air Organizer',hotel_resort:'Hotel / Resort / Hospitality',music_concert:'Music / Concert Venue',sports_gaming:'Sports Event / Gaming',team_building:'Team Building Event',university_campus:'University / Campus Event',other:'Other'};
     var bTypeLabel=bTypeLabels[a.business_type]||a.business_type||'—';
     var hasBilling=!!(a.street&&a.street_number&&a.postal_code&&a.city&&a.phone);
     el.innerHTML=''
