@@ -850,7 +850,7 @@ async function loadReportsContact() {
     el.innerHTML='<div class="form-box">'
       +'<div style="font-size:11px;color:#999;line-height:1.8;margin-bottom:20px;">If you would like to assign a different person as your Reports Contact for your events, you are welcome to enter their name and phone number here.<br><br>This person simply needs to be on-site and reachable by phone during your events — in case a participant submits a report that requires attention. nickradar will verify this contact via SMS before each event activation.</div>'
       +'<div class="form-row"><label>Name</label><input type="text" id="rc-name" value="'+esc(defaultName)+'" /></div>'
-      +'<div class="form-row"><label>Phone (international format, e.g. +436501234567)</label><input type="tel" id="rc-phone" placeholder="+436501234567" autocomplete="off" value="" /></div>'
+      +'<div class="form-row"><label>Phone</label><input type="tel" id="rc-phone" autocomplete="off" value="" /></div>'
       +'<div id="rc-msg" style="font-size:11px;margin-bottom:8px;"></div>'
       +'<button class="btn-green" onclick="doSaveReportsContact()">Save</button>'
       +'</div>';
