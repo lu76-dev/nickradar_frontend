@@ -40,7 +40,7 @@
     .tab:hover { background: #f5f5f5; }
     .tab.active { background: #000; color: #fff; }
 
-    .content { padding: 24px; display: none; }
+    .content { padding: 24px; display: none; max-width: 560px; }
     .content.active { display: block; }
     .section-title { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #eee; color: #666; }
 
@@ -845,7 +845,7 @@ async function loadReportsContact() {
     var d=await r.json();
     if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
     var a=d.admin;
-    var defaultName=a.reports_contact_name||a.contact_name||'';
+    var defaultName=a.reports_contact_name||'';
     el.innerHTML='<div class="form-box">'
       +'<div style="font-size:11px;color:#999;line-height:1.8;margin-bottom:20px;">If you would like to assign a different person as your Reports Contact for your events, you are welcome to enter their name and phone number here.<br><br>This person simply needs to be on-site and reachable by phone during your events — in case a participant submits a report that requires attention. nickradar will verify this contact via SMS before each event activation.</div>'
       +'<div class="form-row"><label>Name</label><input type="text" id="rc-name" value="'+esc(defaultName)+'" /></div>'
