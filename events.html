@@ -287,8 +287,20 @@
         Reports Contact from your account profile will be used automatically. Make sure it is set in <strong style="color:#000;cursor:pointer;" onclick="showTab('reportscontact')">Reports Contact</strong> before creating an event.
       </div>
       <div class="form-msg" id="create-msg"></div>
-      <div style="background:#f7f7f7;border:1px solid #eee;padding:12px 14px;font-size:10px;color:#999;line-height:1.7;max-width:440px;margin-bottom:12px;">
-        By clicking "Pay &amp; Create Event" you agree to our <a href="https://nickradar.com/terms.html" target="_blank" style="color:#999;">Terms &amp; Conditions</a>. Payment is non-refundable once stickers have been generated.
+      <div style="background:#f7f7f7;border:1px solid #eee;padding:14px;max-width:440px;margin-bottom:12px;">
+        <div style="font-size:10px;color:#666;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;">Please confirm to proceed</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <input type="checkbox" id="confirm-rc" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;cursor:pointer;" />
+          <label for="confirm-rc" style="font-size:11px;color:#666;line-height:1.5;cursor:pointer;">I confirm that the designated Reports Contact will be present on-site for the entire duration of this event.</label>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <input type="checkbox" id="confirm-terms" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;cursor:pointer;" />
+          <label for="confirm-terms" style="font-size:11px;color:#666;line-height:1.5;cursor:pointer;">I accept the <a href="https://nickradar.com/terms.html" target="_blank" style="color:#000;text-decoration:underline;">Terms &amp; Conditions</a> and <a href="https://nickradar.com/privacy.html" target="_blank" style="color:#000;text-decoration:underline;">Privacy Policy</a>.</label>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <input type="checkbox" id="confirm-payment" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;cursor:pointer;" />
+          <label for="confirm-payment" style="font-size:11px;color:#666;line-height:1.5;cursor:pointer;">I understand that payment is non-refundable once stickers have been generated.</label>
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" style="height:20px;width:auto;opacity:0.5;" />
@@ -469,19 +481,29 @@ async function doCreateEvent() {
   var startAt=document.getElementById('new-start-at').value;
   var timezone=document.getElementById('new-timezone').value;
   var count=parseInt(document.getElementById('new-sticker-count').value);
+  var confirmRc=document.getElementById('confirm-rc').checked;
+  var confirmTerms=document.getElementById('confirm-terms').checked;
+  var confirmPayment=document.getElementById('confirm-payment').checked;
   var msg=document.getElementById('create-msg');
   msg.style.color='red'; msg.textContent='';
   if (!eventName) { msg.textContent='Event name required.'; return; }
   if (!startAt) { msg.textContent='Start time required.'; return; }
   if (!count||count<24) { msg.textContent='Minimum 24 stickers.'; return; }
+  if (!confirmRc) { msg.textContent='Please confirm that your Reports Contact will be on-site.'; return; }
+  if (!confirmTerms) { msg.textContent='Please accept the Terms & Conditions and Privacy Policy.'; return; }
+  if (!confirmPayment) { msg.textContent='Please confirm the non-refundable payment policy.'; return; }
+  var termsAcceptedAt=new Date().toISOString();
   msg.style.color='#666'; msg.textContent='Generating stickers...';
   try {
-    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone}) });
+    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,terms_accepted_at:termsAcceptedAt,terms_version:'v1.0'}) });
     var d = await r.json();
     if (!d.success) { msg.style.color='red'; msg.textContent='Error: '+d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Event created! Awaiting reports contact confirmation and payment.';
     ['new-event-name','new-start-at','new-sticker-count'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('price-hint').textContent='Enter quantity to see price.';
+    document.getElementById('confirm-rc').checked=false;
+    document.getElementById('confirm-terms').checked=false;
+    document.getElementById('confirm-payment').checked=false;
     showTab('events');
   } catch(e) { msg.style.color='red'; msg.textContent='Connection error.'; }
 }
