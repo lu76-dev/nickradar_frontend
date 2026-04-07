@@ -590,6 +590,7 @@ function buildEventCard(e) {
   return '<div class="event-card">'
     +'<div class="event-card-head">'
     +'<div class="event-card-name">'+e.event_name+'</div>'
+    +'<div style="font-size:9px;color:#bbb;letter-spacing:2px;margin-top:2px;">'+('EV-'+String(e.id).padStart(8,'0'))+'</div>'
     +buildEasBox(e)
     +'</div>'
     +'<div class="event-card-body">'
@@ -779,6 +780,7 @@ async function loadAccount() {
       +'<div class="form-row"><label>Business Type</label><input type="text" value="'+esc(bTypeLabel)+'" disabled style="'+ro+'" /></div>'
       +'<div class="form-row"><label>Country</label><input type="text" value="'+esc(a.country||'')+'" disabled style="'+ro+'" /></div>'
       +'<div class="form-row"><label>Email</label><input type="email" value="'+esc(a.email)+'" disabled style="'+ro+'" /></div>'
+      +'<div class="form-row"><label>Kundennummer</label><input type="text" value="EA-'+String(a.id).padStart(4,'0')+'" disabled style="'+ro+'" /></div>'
       +'</div>'
       +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
       +(hasBilling?'':'<div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:12px;">Required for invoicing. Once saved, these cannot be changed.</div>')

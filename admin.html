@@ -156,11 +156,12 @@ async function loadEventAdmins() {
       if (a.status==='active')  actions+='<button class="btn-sm-danger" onclick="blockAdmin('+a.id+')">Block</button>';
       if (a.status==='blocked') actions+='<button class="btn-sm" onclick="unblockAdmin('+a.id+')">Unblock</button>';
       actions+='<button class="btn-sm" onclick="setPassword('+a.id+',\''+esc(a.org_name)+'\')">Set PW</button>';
-      return '<tr><td>'+a.id+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
+      var eaNum='EA-'+String(a.id).padStart(4,'0');
+      return '<tr><td>'+eaNum+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
         +'<td><span class="status-'+a.status+'">'+a.status.toUpperCase()+'</span></td><td>'+fmt(a.created_at)+'</td><td>'+fmt(a.last_login_at)+'</td><td>'+actions+'</td></tr>';
     }).join('');
     setContent('<div class="toolbar"><button class="btn-sm" onclick="loadEventAdmins()">↻ Refresh</button><span class="count">'+d.admins.length+' event admins</span></div>'
-      +'<table><thead><tr><th>ID</th><th>Organization</th><th>Contact</th><th>Email</th><th>Status</th><th>Registered</th><th>Last Login</th><th>Actions</th></tr></thead>'
+      +'<table><thead><tr><th>Kundennr.</th><th>Organization</th><th>Contact</th><th>Email</th><th>Status</th><th>Registered</th><th>Last Login</th><th>Actions</th></tr></thead>'
       +'<tbody>'+(rows||'<tr><td colspan="8" class="empty">No event admins yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
@@ -248,7 +249,8 @@ async function loadEvents() {
         actions+='<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>';
       }
       actions+='<button class="btn-sm" onclick="loadParticipantList('+e.id+',\''+esc(e.event_name)+'\')">Participants</button>';
-      return '<tr><td>'+e.id+'</td><td><strong>'+esc(e.event_name)+'</strong></td><td>'+esc(e.admin_org)+'</td><td>'+esc(e.admin_email)+'</td>'
+      var evNum='EV-'+String(e.id).padStart(8,'0');
+      return '<tr><td>'+evNum+'</td><td><strong>'+esc(e.event_name)+'</strong></td><td>'+esc(e.admin_org)+'</td><td>'+esc(e.admin_email)+'</td>'
         +'<td><span class="status-'+e.status+'">'+e.status.toUpperCase()+'</span>'+pendingInfo+'</td>'
         +'<td>'+fmt(e.start_at)+'</td><td>'+fmt(e.ends_at)+'</td>'
         +'<td>'+e.sticker_count+'</td><td>'+e.activated_count+'</td><td>'+e.connection_count+'</td>'
@@ -256,7 +258,7 @@ async function loadEvents() {
     }).join('');
     setContent(alertHtml
       +'<div class="toolbar"><button class="btn-sm" onclick="loadEvents()">↻ Refresh</button><span class="count">'+events.length+' events</span></div>'
-      +'<table><thead><tr><th>ID</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Reports Contact</th><th>Actions</th></tr></thead>'
+      +'<table><thead><tr><th>Eventnr.</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Reports Contact</th><th>Actions</th></tr></thead>'
       +'<tbody>'+(rows||'<tr><td colspan="12" class="empty">No events yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
