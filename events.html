@@ -250,7 +250,7 @@
   <div class="content" id="tab-events">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid #eee;">
       <div class="section-title" style="margin:0;padding:0;border:none;">My Nickname Events</div>
-      <button class="btn-outline" onclick="loadEvents()">↻ Refresh</button>
+      <button class="btn-outline" onclick="loadEvents()" style="font-weight:bold;border-color:#000;">↻ Refresh</button>
     </div>
     <div id="events-list"><div class="loading">Loading...</div></div>
     <div id="events-history-wrap" style="display:none;margin-top:32px;">
@@ -468,7 +468,8 @@ function buildEasBox(e) {
     line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
     line3='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#00aa2a;">...</div>';
   }
-  return '<div class="eas-box">'+line1+line2+line3+'</div>';
+  var liveBadge = (e.status==='active') ? '<div style="font-size:10px;font-weight:bold;letter-spacing:3px;color:#000;background:#00ff41;padding:2px 8px;margin-bottom:6px;display:inline-block;">● LIVE</div>' : '';
+  return '<div class="eas-box">'+liveBadge+line1+line2+line3+'</div>';
 }
 
 function buildEventCard(e) {
