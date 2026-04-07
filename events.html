@@ -453,12 +453,12 @@ function buildEasBox(e) {
     line3='<div class="eas-line" style="color:#bbb;">Finished '+finStr+byStr+'</div>';
   } else if (!e.security_confirmed) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Security Verification</div>';
-    line2='<div class="eas-line" style="color:#bbb;">— Payment Verification</div>';
-    line3='<div class="eas-line" style="color:#bbb;">—</div>';
+    line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
+    line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
   } else if (!e.paid) {
     line1='<div class="eas-line" style="color:#00aa2a;">✓ Security Verification</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
-    line3='<div class="eas-line" style="color:#bbb;">—</div>';
+    line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
   } else if (e.status==='pending') {
     line1='<div class="eas-line" style="color:#00aa2a;">✓ Security Verification</div>';
     line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
