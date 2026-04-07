@@ -529,7 +529,9 @@ function buildEasBox(e) {
     var durMs=finTime-new Date(e.start_at);
     var dH=Math.floor(durMs/3600000),dM=Math.floor((durMs%3600000)/60000),dS=Math.floor((durMs%60000)/1000);
     var durStr=String(dH).padStart(2,'0')+':'+String(dM).padStart(2,'0')+':'+String(dS).padStart(2,'0');
-    line3='<div class="eas-line" style="color:#bbb;">'+byStr+finStr+' · Effective Duration: '+durStr+'</div>';
+    line1='<div class="eas-line" style="color:#bbb;">'+(e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by):'—')+'</div>';
+    line2='<div class="eas-line" style="color:#bbb;">'+finStr+'</div>';
+    line3='<div class="eas-line" style="color:#bbb;">Effective Duration: '+durStr+'</div>';
   } else if (!e.reports_contact_confirmed) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
