@@ -333,7 +333,8 @@ async function loadInvoices() {
     var d=await r.json();
     if(!d.success){setContent('<div class="empty">Error.</div>');return;}
     var rows=d.invoices.map(function(i){
-      return '<tr><td>'+esc(i.invoice_number||'—')+'</td><td>'+esc(i.org_name)+'</td><td>'+esc(i.event_name||'—')+'</td>'
+      var invLink=i.event_id?'<a href="'+API+'/api/admin/events/'+i.event_id+'/invoice?key='+encodeURIComponent(adminKey)+'" target="_blank" style="color:#000;text-decoration:underline;">'+esc(i.invoice_number||'—')+'</a>':esc(i.invoice_number||'—');
+      return '<tr><td>'+invLink+'</td><td>'+esc(i.org_name)+'</td><td>'+esc(i.event_name||'—')+'</td>'
         +'<td>'+i.quantity+'</td><td>€'+parseFloat(i.unit_price||0).toFixed(2)+'</td>'
         +'<td><strong>€'+parseFloat(i.total||0).toFixed(2)+'</strong></td>'
         +'<td>'+esc(i.payment_provider||'—')+'</td><td>'+fmt(i.paid_at)+'</td><td>'+fmt(i.created_at)+'</td></tr>';
