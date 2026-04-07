@@ -523,13 +523,13 @@ function buildEasBox(e) {
     line1=''; line2='';
     var finTime=e.stopped_at?new Date(e.stopped_at):new Date(e.ends_at);
     var tz=e.timezone||'Europe/Vienna';
-    var finStr=finTime.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'2-digit',timeZone:tz})+' '+finTime.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit',timeZone:tz})+' Uhr';
+    var finStr=finTime.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:tz})+' '+finTime.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit',timeZone:tz});
     var byLabels={'time_expired':'Time Expired','event_admin':'Event Admin','nickradar_admin':'nickradar Admin'};
     var byStr=e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by)+' · ':'';
     var durMs=finTime-new Date(e.start_at);
     var dH=Math.floor(durMs/3600000),dM=Math.floor((durMs%3600000)/60000),dS=Math.floor((durMs%60000)/1000);
     var durStr=String(dH).padStart(2,'0')+':'+String(dM).padStart(2,'0')+':'+String(dS).padStart(2,'0');
-    line3='<div class="eas-line" style="color:#bbb;">'+byStr+finStr+' · '+durStr+'</div>';
+    line3='<div class="eas-line" style="color:#bbb;">'+byStr+finStr+' · Effective Duration: '+durStr+'</div>';
   } else if (!e.reports_contact_confirmed) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
