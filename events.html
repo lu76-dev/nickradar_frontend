@@ -214,14 +214,14 @@
   <div class="content active" id="tab-create">
     <div class="section-title">Create New Nickname Event</div>
     <div class="form-box">
-      <div class="form-row"><label>Event Name *</label><input type="text" id="new-event-name" /></div>
+      <div class="form-row"><label>Event Name</label><input type="text" id="new-event-name" /></div>
       <div class="form-row">
-        <label>Date & Start Time *</label>
+        <label>Date & Start Time</label>
         <input type="datetime-local" id="new-start-at" />
         <div class="hint">Duration is automatically set to 8 hours.</div>
       </div>
       <div class="form-row">
-        <label>Event Timezone *</label>
+        <label>Event Timezone</label>
         <select id="new-timezone" style="border:1px solid #ccc;padding:8px 10px;font-size:13px;width:100%;outline:none;font-family:inherit;background:#fff;">
           <optgroup label="Europe">
             <option value="Europe/Vienna">Vienna / Innsbruck (CET)</option>
@@ -272,7 +272,7 @@
         </select>
       </div>
       <div class="form-row">
-        <label>Number of Participants / Stickers * (min. 24)</label>
+        <label>Number of Participants / Stickers (min. 24)</label>
         <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="24" max="10000" oninput="updatePrice()" />
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
