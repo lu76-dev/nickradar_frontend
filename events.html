@@ -214,7 +214,6 @@
     <button class="tab active" onclick="showTab('create')">New Event</button>
     <button class="tab" onclick="showTab('events')">My Events</button>
     <button class="tab" onclick="showTab('account')">My Account</button>
-    <button class="tab" onclick="showTab('reportscontact')">Reports Contact</button>
     <button class="tab" onclick="showTab('invoices')">Invoices</button>
   </div>
 
@@ -283,8 +282,11 @@
         <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="24" max="10000" oninput="updatePrice()" />
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
-      <div id="rc-status-box" style="margin-top:16px;padding:12px 14px;background:#f7f7f7;border:1px solid #eee;font-size:10px;color:#999;line-height:1.7;max-width:440px;">
-        Reports Contact from your account profile will be used automatically. Make sure it is set in <strong style="color:#000;cursor:pointer;" onclick="showTab('reportscontact')">Reports Contact</strong> before creating an event.
+      <div style="margin-top:16px;padding:14px;background:#f7f7f7;border:1px solid #eee;max-width:440px;">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;">Reports Contact</div>
+        <div class="form-row"><label>Name</label><input type="text" id="new-rc-name" /></div>
+        <div class="form-row"><label>Phone</label><input type="tel" id="new-rc-phone" autocomplete="off" /></div>
+        <div style="font-size:10px;color:#bbb;margin-top:6px;line-height:1.5;">This person must be on-site and reachable during the event. nickradar will verify via SMS.</div>
       </div>
       <div class="form-msg" id="create-msg"></div>
       <div style="background:#f7f7f7;border:1px solid #eee;padding:14px;max-width:440px;margin-bottom:12px;">
@@ -330,9 +332,6 @@
     <div id="account-content"><div class="loading">Loading...</div></div>
   </div>
 
-  <div class="content" id="tab-reportscontact">
-    <div id="reportscontact-content"><div class="loading">Loading...</div></div>
-  </div>
 
   <div class="content" id="tab-invoices">
     <div id="invoices-content"><div class="loading">Loading...</div></div>
@@ -392,39 +391,24 @@ function showPortal() {
   showScreen('portal');
   document.getElementById('top-org-name').textContent = adminData.org_name;
   loadEvents();
-  checkRcStatus();
 }
 
 function showTab(name) {
-  var tabs = ['create','events','account','reportscontact','invoices'];
+  var tabs = ['create','events','account','invoices'];
   document.querySelectorAll('.tab').forEach(function(t,i) { t.classList.toggle('active', tabs[i]===name); });
   document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
   var el = document.getElementById('tab-'+name);
   if (el) el.classList.add('active');
-  if (name==='create') checkRcStatus();
+  if (name==='create') prefillRcName();
   if (name==='events') loadEvents();
   if (name==='account') loadAccount();
-  if (name==='reportscontact') loadReportsContact();
   if (name==='invoices') loadInvoices();
 }
 
-function checkRcStatus() {
-  var box = document.getElementById('rc-status-box');
-  if (!box) return;
-  var hasRc = adminData && adminData.reports_contact_name && adminData.reports_contact_phone;
-  if (!hasRc) {
-    box.style.background = '#fff5f5';
-    box.style.border = '1px solid #ffcccc';
-    box.innerHTML = '<span style="color:#cc0000;font-size:12px;margin-right:6px;">&#9888;</span>'
-      + '<span style="color:#cc0000;">Reports Contact not set. </span>'
-      + '<strong style="color:#cc0000;cursor:pointer;text-decoration:underline;" onclick="showTab('reportscontact')">Set it now</strong>'
-      + '<span style="color:#cc0000;"> before creating an event.</span>';
-  } else {
-    box.style.background = '#f7f7f7';
-    box.style.border = '1px solid #eee';
-    box.innerHTML = 'Reports Contact from your account profile will be used automatically. Make sure it is set in '
-      + '<strong style="color:#000;cursor:pointer;" onclick="showTab('reportscontact')">Reports Contact</strong>'
-      + ' before creating an event.';
+function prefillRcName() {
+  var nameEl = document.getElementById('new-rc-name');
+  if (nameEl && adminData && adminData.contact_name && !nameEl.value) {
+    nameEl.value = adminData.contact_name;
   }
 }
 
@@ -499,6 +483,8 @@ async function doCreateEvent() {
   var startAt=document.getElementById('new-start-at').value;
   var timezone=document.getElementById('new-timezone').value;
   var count=parseInt(document.getElementById('new-sticker-count').value);
+  var rcName=document.getElementById('new-rc-name').value.trim();
+  var rcPhone=document.getElementById('new-rc-phone').value.trim();
   var confirmTerms=document.getElementById('confirm-terms').checked;
   var confirmPayment=document.getElementById('confirm-payment').checked;
   var msg=document.getElementById('create-msg');
@@ -506,17 +492,20 @@ async function doCreateEvent() {
   if (!eventName) { msg.textContent='Event name required.'; return; }
   if (!startAt) { msg.textContent='Start time required.'; return; }
   if (!count||count<24) { msg.textContent='Minimum 24 stickers.'; return; }
+  if (!rcName) { msg.textContent='Reports Contact name is required.'; return; }
+  if (!rcPhone) { msg.textContent='Reports Contact phone is required.'; return; }
   if (!confirmTerms) { msg.textContent='Please accept the Terms & Conditions and Privacy Policy.'; return; }
   if (!confirmPayment) { msg.textContent='Please confirm the non-refundable payment policy.'; return; }
   var termsAcceptedAt=new Date().toISOString();
   msg.style.color='#666'; msg.textContent='Generating stickers...';
   try {
-    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,terms_accepted_at:termsAcceptedAt,terms_version:'v1.0'}) });
+    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,reports_contact_name:rcName,reports_contact_phone:rcPhone,terms_accepted_at:termsAcceptedAt,terms_version:'v1.0'}) });
     var d = await r.json();
     if (!d.success) { msg.style.color='red'; msg.textContent='Error: '+d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Event created! Awaiting reports contact confirmation and payment.';
     ['new-event-name','new-start-at','new-sticker-count'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('price-hint').textContent='Enter quantity to see price.';
+    document.getElementById('new-rc-phone').value='';
     document.getElementById('confirm-terms').checked=false;
     document.getElementById('confirm-payment').checked=false;
     showTab('events');
@@ -875,40 +864,6 @@ async function doSaveBilling() {
   } catch(e) { msg.textContent='Connection error.'; }
 }
 
-async function loadReportsContact() {
-  var el=document.getElementById('reportscontact-content');
-  el.innerHTML='<div class="loading">Loading...</div>';
-  try {
-    var r=await fetch(API+'/api/event-admin/me?t='+Date.now(), {headers:{Authorization:'Bearer '+token}});
-    var d=await r.json();
-    if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
-    var a=d.admin;
-    var defaultName=a.contact_name||'';
-    el.innerHTML='<div class="form-box">'
-      +'<div style="font-size:11px;color:#999;line-height:1.8;margin-bottom:20px;">If you would like to assign a different person as your Reports Contact for your events, you are welcome to enter their name and phone number here.<br><br>This person simply needs to be on-site and reachable by phone during your events — in case a participant submits a report that requires attention. nickradar will verify this contact via SMS before each event activation.</div>'
-      +'<div class="form-row"><label>Name</label><input type="text" id="rc-name" value="'+esc(defaultName)+'" /></div>'
-      +'<div class="form-row"><label>Phone</label><input type="tel" id="rc-phone" autocomplete="off" value="" /></div>'
-      +'<div id="rc-msg" style="font-size:11px;margin-bottom:8px;"></div>'
-      +'<button class="btn-green" onclick="doSaveReportsContact()">Save</button>'
-      +'</div>';
-  } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
-}
-
-async function doSaveReportsContact() {
-  var msg=document.getElementById('rc-msg')||document.getElementById('acc-rc-msg');
-  msg.style.color='red'; msg.textContent='';
-  var nameEl=document.getElementById('rc-name')||document.getElementById('acc-rc-name');
-  var phoneEl=document.getElementById('rc-phone')||document.getElementById('acc-rc-phone');
-  var name=nameEl?nameEl.value.trim():'';
-  var phone=phoneEl?phoneEl.value.trim():'';
-  if (!name||!phone) { msg.textContent='Name and phone are required.'; return; }
-  try {
-    var r=await fetch(API+'/api/event-admin/reports-contact',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({reports_contact_name:name,reports_contact_phone:phone})});
-    var d=await r.json();
-    if (!d.success) { msg.textContent=d.error; return; }
-    msg.style.color='green'; msg.textContent='✓ Saved.';
-  } catch(e) { msg.textContent='Connection error.'; }
-}
 
 async function doChangePassword() {
   var msg=document.getElementById('acc-pw-msg');
