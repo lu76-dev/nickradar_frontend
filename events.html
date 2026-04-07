@@ -40,7 +40,7 @@
     .tab:hover { background: #f5f5f5; }
     .tab.active { background: #000; color: #fff; }
 
-    .content { padding: 24px; display: none; max-width: 560px; }
+    .content { padding: 24px; display: none; }
     .content.active { display: block; }
     .section-title { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #eee; color: #666; }
 
@@ -785,7 +785,7 @@ async function loadAccount() {
     var bTypeLabels={agency_promoter:'Agency / Promoter',club_bar_lounge:'Club / Bar / Lounge',conference_congress:'Conference / Congress',corporate_networking:'Corporate / Networking Event',cruise_travel:'Cruise / Travel Event',festival_open_air:'Festival / Open Air Organizer',hotel_resort:'Hotel / Resort / Hospitality',music_concert:'Music / Concert Venue',sports_gaming:'Sports Event / Gaming',team_building:'Team Building Event',university_campus:'University / Campus Event',other:'Other'};
     var bTypeLabel=bTypeLabels[a.business_type]||a.business_type||'—';
     var hasBilling=!!(a.street&&a.street_number&&a.postal_code&&a.city&&a.phone);
-    el.innerHTML=''
+    el.innerHTML='<div style="max-width:520px;">'
       +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
       +'<div class="form-row"><label>Customer ID</label><input type="text" value="EA-'+String(a.id).padStart(4,'0')+'" disabled style="'+ro+'" /></div>'
       +'<div class="form-row"><label>Company Name</label><input type="text" value="'+esc(a.org_name||'')+'" disabled style="'+ro+'" /></div>'
@@ -812,6 +812,7 @@ async function loadAccount() {
       +'</div>'
       +'<div style="padding-top:8px;">'
       +'<button class="btn-danger" onclick="doDeleteAccount()">Delete Account</button>'
+      +'</div>'
       +'</div>';
   } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
 }
@@ -845,7 +846,7 @@ async function loadReportsContact() {
     var d=await r.json();
     if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
     var a=d.admin;
-    var defaultName=a.reports_contact_name||'';
+    var defaultName=a.reports_contact_name||a.contact_name||'';
     el.innerHTML='<div class="form-box">'
       +'<div style="font-size:11px;color:#999;line-height:1.8;margin-bottom:20px;">If you would like to assign a different person as your Reports Contact for your events, you are welcome to enter their name and phone number here.<br><br>This person simply needs to be on-site and reachable by phone during your events — in case a participant submits a report that requires attention. nickradar will verify this contact via SMS before each event activation.</div>'
       +'<div class="form-row"><label>Name</label><input type="text" id="rc-name" value="'+esc(defaultName)+'" /></div>'
