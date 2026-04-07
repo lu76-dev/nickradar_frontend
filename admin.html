@@ -152,9 +152,9 @@ async function loadEventAdmins() {
     if (!d.success) { setContent('<div class="empty">Error.</div>'); return; }
     var rows=d.admins.map(function(a){
       var actions='';
-      if (a.status==='pending') actions+='<button class="btn-sm-green" onclick="activateAdmin('+a.id+')">Activate</button>';
+      if (a.status==='pending') actions+='<span style="font-size:10px;color:#cc6600;letter-spacing:1px;">⏳ Email verification pending</span>';
       if (a.status==='active')  actions+='<button class="btn-sm-danger" onclick="blockAdmin('+a.id+')">Block</button>';
-      if (a.status==='blocked') actions+='<button class="btn-sm" onclick="activateAdmin('+a.id+')">Unblock</button>';
+      if (a.status==='blocked') actions+='<button class="btn-sm" onclick="unblockAdmin('+a.id+')">Unblock</button>';
       actions+='<button class="btn-sm" onclick="setPassword('+a.id+',\''+esc(a.org_name)+'\')">Set PW</button>';
       return '<tr><td>'+a.id+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
         +'<td><span class="status-'+a.status+'">'+a.status.toUpperCase()+'</span></td><td>'+fmt(a.created_at)+'</td><td>'+fmt(a.last_login_at)+'</td><td>'+actions+'</td></tr>';
@@ -165,8 +165,8 @@ async function loadEventAdmins() {
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
 
-async function activateAdmin(id) {
-  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/activate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+async function unblockAdmin(id) {
+  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/unblock',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
 }
 async function blockAdmin(id) {
   if(!confirm('Block this Event Admin?')) return;
@@ -179,6 +179,24 @@ async function setPassword(id, orgName) {
   try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/set-password',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({password:pw})}); var d=await r.json(); if(d.success) alert('Password set. Email sent.'); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
 }
 
+async function editAdminProfile(id, orgName) {
+  var fields=['org_name','contact_name','business_type','country','street','plz_city','vat','phone','reports_contact_name','reports_contact_phone'];
+  var labels=['Company Name','Contact Person','Business Type','Country','Street','Postal Code & City','VAT/UID','Phone','Reports Contact Name','Reports Contact Phone'];
+  var vals=[];
+  for(var i=0;i<fields.length;i++){
+    var v=prompt('Edit '+labels[i]+' for "'+orgName+'":');
+    if(v===null) return;
+    vals.push(v.trim()||null);
+  }
+  var body={};
+  fields.forEach(function(f,i){if(vals[i])body[f]=vals[i];});
+  try {
+    var r=await fetch(API+'/api/admin/event-admin/'+id+'/profile',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify(body)});
+    var d=await r.json();
+    if(d.success){alert('Profile updated.');loadEventAdmins();}else alert('Error: '+d.error);
+  } catch(e){alert('Connection error.');}
+}
+
 async function loadEvents() {
   setContent('<div class="loading">Loading...</div>');
   try {
@@ -186,8 +204,8 @@ async function loadEvents() {
     var d=await r.json();
     if (!d.success) { setContent('<div class="empty">Error.</div>'); return; }
     var events=d.events;
-    var needsSecurity=events.filter(function(e){return e.status==='pending'&&!e.security_confirmed;});
-    var needsPayment=events.filter(function(e){return e.status==='pending'&&e.security_confirmed&&!e.paid;});
+    var needsSecurity=events.filter(function(e){return e.status==='pending'&&!e.reports_contact_confirmed;});
+    var needsPayment=events.filter(function(e){return e.status==='pending'&&e.reports_contact_confirmed&&!e.paid;});
     var alertHtml='';
     if (needsSecurity.length>0) {
       alertHtml+='<div class="alert-box alert-box-security"><strong>⏳ '+needsSecurity.length+' event(s) awaiting reports contact confirmation:</strong><br><br>'
@@ -210,23 +228,23 @@ async function loadEvents() {
     var rows=events.map(function(e){
       var pendingInfo='';
       if (e.status==='pending') {
-        if (!e.security_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ reports contact</span>';
+        if (!e.reports_contact_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ reports contact</span>';
         else if (!e.paid)          pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ payment</span>';
         else                       pendingInfo=' <span style="color:green;font-size:9px;">✓ ready</span>';
       }
       var secInfo=e.security_name
         ?esc(e.security_name)+'<br><span style="font-size:10px;color:#999;">'+esc(e.security_phone)+'</span>'
-          +(e.security_confirmed?' <span style="color:green;">✓</span>':' <span style="color:#cc6600;">⏳</span>')
+          +(e.reports_contact_confirmed?' <span style="color:green;">✓</span>':' <span style="color:#cc6600;">⏳</span>')
         :'—';
       var actions='';
       if (e.status==='active'||e.status==='pending') {
         actions+='<button class="btn-sm-danger" onclick="stopEvent('+e.id+')">Stop</button>';
         actions+='<button class="btn-sm" onclick="showDuration('+e.id+',\''+e.ends_at+'\')">Duration</button>';
       }
-      if (!e.security_confirmed&&e.status==='pending') {
+      if (!e.reports_contact_confirmed&&e.status==='pending') {
         actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Reports Contact</button>';
       }
-      if (e.security_confirmed&&!e.paid&&e.status==='pending') {
+      if (e.reports_contact_confirmed&&!e.paid&&e.status==='pending') {
         actions+='<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>';
       }
       actions+='<button class="btn-sm" onclick="loadParticipantList('+e.id+',\''+esc(e.event_name)+'\')">Participants</button>';
@@ -246,7 +264,7 @@ async function loadEvents() {
 async function confirmSecurity(id) {
   if (!confirm('Confirm reports contact for this event?\n\nThis allows the event to proceed to payment and start.')) return;
   try {
-    var r=await fetch(API+'/api/admin/events/'+id+'/confirm-security',{method:'POST',headers:{'x-admin-key':adminKey}});
+    var r=await fetch(API+'/api/admin/events/'+id+'/confirm-reports-contact',{method:'POST',headers:{'x-admin-key':adminKey}});
     var d=await r.json();
     if (d.success) loadEvents(); else alert('Error: '+d.error);
   } catch(e){alert('Connection error.');}

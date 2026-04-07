@@ -9,7 +9,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #fff; color: #000; font-family: 'Share Tech Mono', 'Courier New', monospace; font-size: 13px; }
 
-    #screen-login, #screen-register { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    #screen-login, #screen-register, #screen-verify { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
     .auth-wrap { width: 340px; }
     .auth-logo { font-size: 20px; font-weight: bold; letter-spacing: 4px; margin-bottom: 32px; color: #000; display: flex; align-items: center; gap: 10px; }
     .auth-logo img { height: 28px; width: auto; }
@@ -120,32 +120,79 @@
   </div>
 </div>
 
-<div id="screen-register">
-  <div class="auth-wrap">
+<div id="screen-register" style="display:none;">
+  <div class="auth-wrap" style="width:380px;">
     <div class="auth-logo"><img src="nr_logo.png" alt="nickradar logo" />nickradar</div>
     <div class="auth-title">Register as Event Admin</div>
-    <label>Organization *</label>
+    <label>Company Name / Organization *</label>
     <input type="text" id="reg-org" />
-    <label>Street & Number</label>
-    <input type="text" id="reg-street" />
-    <label>Postal Code & City</label>
-    <input type="text" id="reg-plz" />
-    <label>Country</label>
-    <input type="text" id="reg-country" />
-    <label>VAT Number</label>
-    <input type="text" id="reg-vat" />
-    <label>Contact Person</label>
+    <label>Contact Person *</label>
     <input type="text" id="reg-contact" />
-    <label>Phone</label>
-    <input type="tel" id="reg-phone" />
-    <label>Email *</label>
+    <label>Business Type *</label>
+    <select id="reg-business-type" style="border:1px solid #ccc;padding:8px 10px;font-size:13px;width:100%;outline:none;font-family:inherit;background:#fff;margin-top:4px;">
+      <option value="">— select —</option>
+      <option value="club_venue">Club / Venue</option>
+      <option value="festival">Festival</option>
+      <option value="corporate">Corporate Event</option>
+      <option value="university">University</option>
+      <option value="private">Private Organizer</option>
+      <option value="agency_promoter">Agency / Promoter</option>
+    </select>
+    <label>Country *</label>
+    <select id="reg-country" style="border:1px solid #ccc;padding:8px 10px;font-size:13px;width:100%;outline:none;font-family:inherit;background:#fff;margin-top:4px;">
+      <option value="">— select —</option>
+      <option value="Austria">Austria</option>
+      <option value="Germany">Germany</option>
+      <option value="Switzerland">Switzerland</option>
+      <option value="Italy">Italy</option>
+      <option value="France">France</option>
+      <option value="Spain">Spain</option>
+      <option value="Netherlands">Netherlands</option>
+      <option value="Belgium">Belgium</option>
+      <option value="United Kingdom">United Kingdom</option>
+      <option value="Poland">Poland</option>
+      <option value="Czech Republic">Czech Republic</option>
+      <option value="Hungary">Hungary</option>
+      <option value="Croatia">Croatia</option>
+      <option value="Romania">Romania</option>
+      <option value="Portugal">Portugal</option>
+      <option value="Sweden">Sweden</option>
+      <option value="Norway">Norway</option>
+      <option value="Denmark">Denmark</option>
+      <option value="Finland">Finland</option>
+      <option value="Greece">Greece</option>
+      <option value="Turkey">Turkey</option>
+      <option value="United States">United States</option>
+      <option value="Canada">Canada</option>
+      <option value="Brazil">Brazil</option>
+      <option value="Australia">Australia</option>
+      <option value="Japan">Japan</option>
+      <option value="Singapore">Singapore</option>
+      <option value="UAE">UAE</option>
+      <option value="Other">Other</option>
+    </select>
+    <label>Business Email *</label>
     <input type="email" id="reg-email" />
     <label>Password * (min. 8 characters)</label>
     <input type="password" id="reg-pw" />
+    <label>Repeat Password *</label>
+    <input type="password" id="reg-pw2" />
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-top:14px;">
+      <input type="checkbox" id="reg-terms" style="margin-top:2px;flex-shrink:0;" />
+      <label for="reg-terms" style="font-size:10px;color:#999;letter-spacing:1px;line-height:1.6;cursor:pointer;">I agree to the <a href="https://nickradar.com" target="_blank" style="color:#000;">Terms &amp; Conditions</a> and <a href="https://nickradar.com" target="_blank" style="color:#000;">Privacy Policy</a>.</label>
+    </div>
     <div class="auth-error" id="reg-error"></div>
     <div class="auth-success" id="reg-success"></div>
-    <button class="btn-main" onclick="doRegister()">Submit Registration</button>
+    <button class="btn-main" onclick="doRegister()">Create Account</button>
     <div class="auth-link">Already registered? <span onclick="showScreen('login')">Login</span></div>
+  </div>
+</div>
+
+<div id="screen-verify" style="display:none;">
+  <div class="auth-wrap">
+    <div class="auth-logo"><img src="nr_logo.png" alt="nickradar logo" />nickradar</div>
+    <div id="verify-content" style="font-size:13px;letter-spacing:1px;color:#666;text-align:center;">Verifying your email...</div>
+    <div class="auth-link" style="margin-top:20px;text-align:center;"><span onclick="showScreen('login')">Go to Login</span></div>
   </div>
 </div>
 
@@ -229,11 +276,8 @@
         <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="24" max="10000" oninput="updatePrice()" />
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
-      <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eee;">
-        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-bottom:12px;">Reports Contact *</div>
-        <div style="font-size:10px;color:#999;line-height:1.6;margin-bottom:14px;">This person must be reachable by phone for the entire duration of the event. They will only be contacted by the Event Admin or nickradar if a participant report requires on-site attention. The event will only start after nickradar confirms this contact.</div>
-        <div class="form-row"><label>Reports Contact Name *</label><input type="text" id="new-security-name" /></div>
-        <div class="form-row"><label>Reports Contact Phone * (international format, e.g. +436501234567)</label><input type="tel" id="new-security-phone" placeholder="+436501234567" /></div>
+      <div style="margin-top:16px;padding:12px 14px;background:#f7f7f7;border:1px solid #eee;font-size:10px;color:#999;line-height:1.7;max-width:440px;">
+        Reports Contact from your account profile will be used automatically. Make sure it is set in <strong style="color:#000;cursor:pointer;" onclick="showTab('account')">My Account</strong> before creating an event.
       </div>
       <div class="form-msg" id="create-msg"></div>
       <div style="background:#f7f7f7;border:1px solid #eee;padding:12px 14px;font-size:10px;color:#999;line-height:1.7;max-width:440px;margin-bottom:12px;">
@@ -282,11 +326,35 @@ var token = localStorage.getItem('nr_ea_token');
 var adminData = null;
 
 window.onload = function() {
-  if (token) verifyToken();
+  var urlParams = new URLSearchParams(window.location.search);
+  var verifyToken = urlParams.get('token');
+  if (verifyToken) {
+    doVerifyEmail(verifyToken);
+    return;
+  }
+  if (token) verifyToken_();
   else showScreen('login');
 };
 
-async function verifyToken() {
+async function doVerifyEmail(t) {
+  showScreen('verify');
+  try {
+    var r = await fetch(API+'/api/event-admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:t}) });
+    var d = await r.json();
+    var el = document.getElementById('verify-content');
+    if (d.success) {
+      el.style.color='green';
+      el.textContent='✓ Email verified! You can now log in.';
+    } else {
+      el.style.color='red';
+      el.textContent='Verification failed: '+d.error;
+    }
+  } catch(e) {
+    document.getElementById('verify-content').textContent='Connection error.';
+  }
+}
+
+async function verifyToken_() {
   try {
     var r = await fetch(API + '/api/event-admin/me', { headers: { Authorization: 'Bearer ' + token } });
     var d = await r.json();
@@ -296,7 +364,7 @@ async function verifyToken() {
 }
 
 function showScreen(name) {
-  ['login','register','portal'].forEach(function(s) { document.getElementById('screen-'+s).style.display='none'; });
+  ['login','register','portal','verify'].forEach(function(s) { document.getElementById('screen-'+s).style.display='none'; });
   var el = document.getElementById('screen-'+name);
   el.style.display = (name==='portal') ? 'block' : 'flex';
 }
@@ -335,21 +403,31 @@ async function doLogin() {
 }
 
 async function doRegister() {
-  var org=document.getElementById('reg-org').value.trim(), street=document.getElementById('reg-street').value.trim();
-  var plz=document.getElementById('reg-plz').value.trim(), country=document.getElementById('reg-country').value.trim();
-  var vat=document.getElementById('reg-vat').value.trim(), contact=document.getElementById('reg-contact').value.trim();
-  var phone=document.getElementById('reg-phone').value.trim(), email=document.getElementById('reg-email').value.trim();
+  var org=document.getElementById('reg-org').value.trim();
+  var contact=document.getElementById('reg-contact').value.trim();
+  var businessType=document.getElementById('reg-business-type').value;
+  var country=document.getElementById('reg-country').value;
+  var email=document.getElementById('reg-email').value.trim();
   var pw=document.getElementById('reg-pw').value;
+  var pw2=document.getElementById('reg-pw2').value;
+  var terms=document.getElementById('reg-terms').checked;
   var err=document.getElementById('reg-error'), succ=document.getElementById('reg-success');
   err.textContent=''; succ.textContent='';
-  if (!org||!email||!pw) { err.textContent='Organization, Email and Password are required.'; return; }
+  if (!org||!contact||!email||!pw||!pw2) { err.textContent='Please fill all required fields.'; return; }
+  if (!businessType) { err.textContent='Please select a business type.'; return; }
+  if (!country) { err.textContent='Please select a country.'; return; }
   if (pw.length<8) { err.textContent='Password min. 8 characters.'; return; }
+  if (pw!==pw2) { err.textContent='Passwords do not match.'; return; }
+  if (!terms) { err.textContent='Please accept the Terms & Conditions.'; return; }
   try {
-    var r = await fetch(API+'/api/event-admin/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({org_name:org,street:street,plz_city:plz,country:country,vat:vat||null,contact_name:contact||null,phone:phone||null,email:email,password:pw}) });
+    var r = await fetch(API+'/api/event-admin/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({org_name:org,contact_name:contact,business_type:businessType,country:country,email:email,password:pw,confirm_password:pw2}) });
     var d = await r.json();
     if (!d.success) { err.textContent=d.error; return; }
-    succ.textContent='✓ Registration received. You will be notified once activated.';
-    ['reg-org','reg-street','reg-plz','reg-country','reg-vat','reg-contact','reg-phone','reg-email','reg-pw'].forEach(function(id){document.getElementById(id).value='';});
+    succ.textContent='✓ Registration received! Please check your email to verify your account.';
+    ['reg-org','reg-contact','reg-email','reg-pw','reg-pw2'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('reg-business-type').value='';
+    document.getElementById('reg-country').value='';
+    document.getElementById('reg-terms').checked=false;
   } catch(e) { err.textContent='Connection error.'; }
 }
 
@@ -379,22 +457,18 @@ async function doCreateEvent() {
   var startAt=document.getElementById('new-start-at').value;
   var timezone=document.getElementById('new-timezone').value;
   var count=parseInt(document.getElementById('new-sticker-count').value);
-  var securityName=document.getElementById('new-security-name').value.trim();
-  var securityPhone=document.getElementById('new-security-phone').value.trim();
   var msg=document.getElementById('create-msg');
   msg.style.color='red'; msg.textContent='';
   if (!eventName) { msg.textContent='Event name required.'; return; }
   if (!startAt) { msg.textContent='Start time required.'; return; }
   if (!count||count<24) { msg.textContent='Minimum 24 stickers.'; return; }
-  if (!securityName) { msg.textContent='Reports contact name required.'; return; }
-  if (!securityPhone) { msg.textContent='Reports contact phone required.'; return; }
   msg.style.color='#666'; msg.textContent='Generating stickers...';
   try {
-    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,security_name:securityName,security_phone:securityPhone}) });
+    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone}) });
     var d = await r.json();
     if (!d.success) { msg.style.color='red'; msg.textContent='Error: '+d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Event created! Awaiting reports contact confirmation and payment.';
-    ['new-event-name','new-start-at','new-sticker-count','new-security-name','new-security-phone'].forEach(function(id){document.getElementById(id).value='';});
+    ['new-event-name','new-start-at','new-sticker-count'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('price-hint').textContent='Enter quantity to see price.';
     showTab('events');
   } catch(e) { msg.style.color='red'; msg.textContent='Connection error.'; }
@@ -687,19 +761,47 @@ async function loadAccount() {
     var d=await r.json();
     if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
     var a=d.admin;
-    el.innerHTML='<div class="form-box">'
-      +'<div class="form-row"><label>Organization *</label><input type="text" id="acc-org" value="'+esc(a.org_name||'')+'" /></div>'
-      +'<div class="form-row"><label>Street & Number</label><input type="text" id="acc-street" value="'+esc(a.street||'')+'" /></div>'
-      +'<div class="form-row"><label>Postal Code & City</label><input type="text" id="acc-plz" value="'+esc(a.plz_city||'')+'" /></div>'
-      +'<div class="form-row"><label>Country</label><input type="text" id="acc-country" value="'+esc(a.country||'')+'" /></div>'
-      +'<div class="form-row"><label>VAT Number</label><input type="text" id="acc-vat" value="'+esc(a.vat||'')+'" /></div>'
-      +'<div class="form-row"><label>Contact Person</label><input type="text" id="acc-contact" value="'+esc(a.contact_name||'')+'" /></div>'
-      +'<div class="form-row"><label>Phone</label><input type="tel" id="acc-phone" value="'+esc(a.phone||'')+'" /></div>'
-      +'<div class="form-row"><label>Email</label><input type="email" value="'+esc(a.email)+'" disabled style="background:#f5f5f5;color:#999;" /></div>'
-      +'<div id="acc-msg" style="font-size:11px;margin-bottom:8px;"></div>'
-      +'<button class="btn-green" onclick="doUpdateAccount()">Save Changes</button>'
+    var ro='background:#f5f5f5;color:#999;';
+    var bTypeLabels={club_venue:'Club / Venue',festival:'Festival',corporate:'Corporate Event',university:'University',private:'Private Organizer',agency_promoter:'Agency / Promoter'};
+    var bTypeLabel=bTypeLabels[a.business_type]||a.business_type||'—';
+    var hasBilling=!!(a.street&&a.plz_city&&a.phone);
+    el.innerHTML=''
+      +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
+      +'<div class="section-title" style="margin-bottom:8px;">Account Info</div>'
+      +'<div style="font-size:10px;color:#bbb;letter-spacing:1px;margin-bottom:12px;">These fields cannot be changed. Contact nickradar if a correction is needed.</div>'
+      +'<div class="form-row"><label>Company Name</label><input type="text" value="'+esc(a.org_name||'')+'" disabled style="'+ro+'" /></div>'
+      +'<div class="form-row"><label>Contact Person</label><input type="text" value="'+esc(a.contact_name||'')+'" disabled style="'+ro+'" /></div>'
+      +'<div class="form-row"><label>Business Type</label><input type="text" value="'+esc(bTypeLabel)+'" disabled style="'+ro+'" /></div>'
+      +'<div class="form-row"><label>Country</label><input type="text" value="'+esc(a.country||'')+'" disabled style="'+ro+'" /></div>'
+      +'<div class="form-row"><label>Email</label><input type="email" value="'+esc(a.email)+'" disabled style="'+ro+'" /></div>'
       +'</div>'
-      +'<div style="margin-top:32px;padding-top:20px;border-top:1px solid #eee;">'
+      +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
+      +'<div class="section-title" style="margin-bottom:8px;">Billing Info</div>'
+      +(hasBilling
+        ?'<div style="font-size:10px;color:#bbb;letter-spacing:1px;margin-bottom:12px;">These fields cannot be changed. Contact nickradar if a correction is needed.</div>'
+        :'<div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:12px;">Required for invoicing. Once saved, these cannot be changed.</div>')
+      +'<div class="form-row"><label>Street & Number</label><input type="text" id="acc-street" value="'+esc(a.street||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
+      +'<div class="form-row"><label>Postal Code & City</label><input type="text" id="acc-plz" value="'+esc(a.plz_city||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
+      +'<div class="form-row"><label>VAT / UID Number</label><input type="text" id="acc-vat" value="'+esc(a.vat||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
+      +'<div class="form-row"><label>Phone</label><input type="tel" id="acc-phone" value="'+esc(a.phone||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
+      +(hasBilling?'':'<div id="acc-billing-msg" style="font-size:11px;margin-bottom:8px;"></div><button class="btn-green" onclick="doSaveBilling()">Save Billing Info</button>')
+      +'</div>'
+      +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
+      +'<div class="section-title" style="margin-bottom:8px;">Reports Contact</div>'
+      +'<div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:12px;">Must be reachable by phone during all your events. Required before creating an event.</div>'
+      +'<div class="form-row"><label>Reports Contact Name *</label><input type="text" id="acc-rc-name" value="'+esc(a.reports_contact_name||'')+'" /></div>'
+      +'<div class="form-row"><label>Reports Contact Phone *</label><input type="tel" id="acc-rc-phone" placeholder="+436501234567" value="'+esc(a.reports_contact_phone||'')+'" /></div>'
+      +'<div id="acc-rc-msg" style="font-size:11px;margin-bottom:8px;"></div>'
+      +'<button class="btn-green" onclick="doSaveReportsContact()">Save Reports Contact</button>'
+      +'</div>'
+      +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
+      +'<div class="section-title" style="margin-bottom:8px;">Change Password</div>'
+      +'<div class="form-row"><label>New Password (min. 8 characters)</label><input type="password" id="acc-pw1" /></div>'
+      +'<div class="form-row"><label>Repeat New Password</label><input type="password" id="acc-pw2" /></div>'
+      +'<div id="acc-pw-msg" style="font-size:11px;margin-bottom:8px;"></div>'
+      +'<button class="btn-outline" onclick="doChangePassword()">Change Password</button>'
+      +'</div>'
+      +'<div style="padding-top:8px;">'
       +'<button class="btn-danger" onclick="doDeleteAccount()">Delete Account</button>'
       +'</div>';
   } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
@@ -707,23 +809,52 @@ async function loadAccount() {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-async function doUpdateAccount() {
-  var msg=document.getElementById('acc-msg');
+async function doSaveBilling() {
+  var msg=document.getElementById('acc-billing-msg');
   msg.style.color='red'; msg.textContent='';
-  var org=document.getElementById('acc-org').value.trim();
   var street=document.getElementById('acc-street').value.trim();
   var plz=document.getElementById('acc-plz').value.trim();
-  var country=document.getElementById('acc-country').value.trim();
   var vat=document.getElementById('acc-vat').value.trim();
-  var contact=document.getElementById('acc-contact').value.trim();
   var phone=document.getElementById('acc-phone').value.trim();
-  if (!org||!street||!plz||!country) { msg.textContent='Please fill all required fields.'; return; }
+  if (!street||!plz||!phone) { msg.textContent='Street, postal code and phone are required.'; return; }
   try {
-    var r=await fetch(API+'/api/event-admin/profile', {method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({org_name:org,street:street,plz_city:plz,country:country,vat:vat||null,contact_name:contact||null,phone:phone||null})});
+    var r=await fetch(API+'/api/event-admin/profile',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({street:street,plz_city:plz,vat:vat||null,phone:phone})});
     var d=await r.json();
     if (!d.success) { msg.textContent=d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Saved.';
-    document.getElementById('top-org-name').textContent=org;
+    setTimeout(function(){loadAccount();},800);
+  } catch(e) { msg.textContent='Connection error.'; }
+}
+
+async function doSaveReportsContact() {
+  var msg=document.getElementById('acc-rc-msg');
+  msg.style.color='red'; msg.textContent='';
+  var name=document.getElementById('acc-rc-name').value.trim();
+  var phone=document.getElementById('acc-rc-phone').value.trim();
+  if (!name||!phone) { msg.textContent='Name and phone are required.'; return; }
+  try {
+    var r=await fetch(API+'/api/event-admin/reports-contact',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({reports_contact_name:name,reports_contact_phone:phone})});
+    var d=await r.json();
+    if (!d.success) { msg.textContent=d.error; return; }
+    msg.style.color='green'; msg.textContent='✓ Saved.';
+  } catch(e) { msg.textContent='Connection error.'; }
+}
+
+async function doChangePassword() {
+  var msg=document.getElementById('acc-pw-msg');
+  msg.style.color='red'; msg.textContent='';
+  var pw1=document.getElementById('acc-pw1').value;
+  var pw2=document.getElementById('acc-pw2').value;
+  if (!pw1||!pw2) { msg.textContent='Please fill both fields.'; return; }
+  if (pw1.length<8) { msg.textContent='Min. 8 characters.'; return; }
+  if (pw1!==pw2) { msg.textContent='Passwords do not match.'; return; }
+  try {
+    var r=await fetch(API+'/api/event-admin/password',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({new_password:pw1,confirm_password:pw2})});
+    var d=await r.json();
+    if (!d.success) { msg.textContent=d.error; return; }
+    msg.style.color='green'; msg.textContent='✓ Password changed.';
+    document.getElementById('acc-pw1').value='';
+    document.getElementById('acc-pw2').value='';
   } catch(e) { msg.textContent='Connection error.'; }
 }
 
