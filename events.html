@@ -487,7 +487,7 @@ async function loadEvents() {
     var html='';
     active.forEach(function(e){html+=buildEventCard(e);});
     el.innerHTML=html||'<div class="empty">No active events.</div>';
-    var timerEvents=d.events.filter(function(e){return e.status==='active'||(e.status==='pending'&&e.security_confirmed&&e.paid);});
+    var timerEvents=d.events.filter(function(e){return e.status==='active'||(e.status==='pending'&&e.reports_contact_confirmed&&e.paid);});
     startCountdowns(timerEvents);
     var histWrap=document.getElementById('events-history-wrap');
     var histEl=document.getElementById('events-history');
@@ -525,7 +525,7 @@ function buildEasBox(e) {
     var finStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:e.timezone||'Europe/Vienna'});
     var byStr=e.stopped_by?' · '+e.stopped_by.replace(/_/g,' '):'';
     line3='<div class="eas-line" style="color:#bbb;">Finished '+finStr+byStr+'</div>';
-  } else if (!e.security_confirmed) {
+  } else if (!e.reports_contact_confirmed) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
     line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
@@ -551,7 +551,7 @@ function buildEventCard(e) {
   if (e.status==='active') { sLabel='ACTIVE'; }
   else if (e.status==='finished') { sLabel='FINISHED'; }
   else if (e.status==='pending') {
-    if (!e.security_confirmed||!e.paid) { sLabel='PENDING — Reports Contact & Payment required'; }
+    if (!e.reports_contact_confirmed||!e.paid) { sLabel='PENDING — Reports Contact & Payment required'; }
     else { sLabel='READY'; }
   } else { sLabel=e.status.toUpperCase(); }
   var tz=e.timezone||'Europe/Vienna';
@@ -560,7 +560,7 @@ function buildEventCard(e) {
   var startStr=new Date(e.start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz});
   var endsStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz});
   var stoppedBy=e.stopped_by?'<span style="font-size:10px;color:#bbb;letter-spacing:1px;">ended by: '+e.stopped_by.replace(/_/g,' ')+'</span>':'';
-  var ready=e.security_confirmed&&e.paid;
+  var ready=e.reports_contact_confirmed&&e.paid;
   var leftActions='';
   if (ready) {
     leftActions+='<button class="btn-action" onclick="loadParticipantList('+e.id+')">Participant List</button>';
@@ -577,8 +577,8 @@ function buildEventCard(e) {
   }
   var rightActions='';
   if (e.status==='active') { rightActions='<button class="btn-action btn-action-stop" onclick="doStopEvent('+e.id+')">⚠ STOP EVENT</button>'; }
-  var securityInfo=e.security_name
-    ?'<span>Reports Contact: <strong>'+e.security_name+'</strong> '+e.security_phone+(e.security_confirmed?' <span style="color:green;font-size:9px;">✓</span>':' <span style="color:#cc6600;font-size:9px;">⏳</span>')+'</span>'
+  var contactInfo=e.reports_contact_name
+    ?'<span>Reports Contact: <strong>'+e.reports_contact_name+'</strong> '+e.reports_contact_phone+(e.reports_contact_confirmed?' <span style="color:green;font-size:9px;">✓</span>':' <span style="color:#cc6600;font-size:9px;">⏳</span>')+'</span>'
     :'';
   return '<div class="event-card">'
     +'<div class="event-card-head">'
@@ -590,7 +590,7 @@ function buildEventCard(e) {
     +'<span>Stickers: <strong>'+e.sticker_count+'</strong></span>'
     +'<span>Activated: <strong>'+e.activated_count+'</strong></span>'
     +'<span>Connections: <strong>'+e.connection_count+'</strong></span>'
-    +securityInfo
+    +contactInfo
     +stoppedBy
     +'</div>'
     +'<div class="event-card-actions">'
