@@ -520,8 +520,7 @@ function fmtCountdown(ms) {
 function buildEasBox(e) {
   var line1, line2, line3;
   if (e.status==='finished') {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
-    line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
+    line1=''; line2='';
     var finTime=e.stopped_at?new Date(e.stopped_at):new Date(e.ends_at);
     var tz=e.timezone||'Europe/Vienna';
     var finStr=finTime.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'2-digit',timeZone:tz})+' '+finTime.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit',timeZone:tz})+' Uhr';
