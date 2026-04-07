@@ -233,9 +233,18 @@ async function loadEvents() {
         else if (!e.paid)          pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ payment</span>';
         else                       pendingInfo=' <span style="color:green;font-size:9px;">✓ ready</span>';
       }
-      var secInfo=e.security_name
-        ?esc(e.security_name)+'<br><span style="font-size:10px;color:#999;">'+esc(e.security_phone)+'</span>'
+      var rcName = e.reports_contact_name || e.security_name || '';
+      var rcPhone = e.reports_contact_phone || e.security_phone || '';
+      var rcLink = e.rc_confirm_token
+        ? 'https://app.nickradar.com/api/events/confirm-rc?token=' + e.rc_confirm_token
+        : '';
+      var rcLinkBtn = (!e.reports_contact_confirmed && rcLink)
+        ? ' <button class="btn-sm" onclick="copyRcLink(\'' + rcLink + '\')" title="Copy SMS link">&#128203; Copy SMS Link</button>'
+        : '';
+      var secInfo=rcName
+        ?esc(rcName)+'<br><span style="font-size:10px;color:#999;">'+esc(rcPhone)+'</span>'
           +(e.reports_contact_confirmed?' <span style="color:green;">✓</span>':' <span style="color:#cc6600;">⏳</span>')
+          +rcLinkBtn
         :'—';
       var actions='';
       if (e.status==='active'||e.status==='pending') {
@@ -261,6 +270,14 @@ async function loadEvents() {
       +'<table><thead><tr><th>Eventnr.</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Reports Contact</th><th>Actions</th></tr></thead>'
       +'<tbody>'+(rows||'<tr><td colspan="12" class="empty">No events yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
+}
+
+function copyRcLink(link) {
+  navigator.clipboard.writeText(link).then(function() {
+    alert('SMS link copied!\n\nSend this to the Reports Contact:\n\n' + link);
+  }).catch(function() {
+    prompt('Copy this link and send via SMS:', link);
+  });
 }
 
 async function confirmSecurity(id) {

@@ -283,7 +283,7 @@
         <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="24" max="10000" oninput="updatePrice()" />
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
-      <div style="margin-top:16px;padding:12px 14px;background:#f7f7f7;border:1px solid #eee;font-size:10px;color:#999;line-height:1.7;max-width:440px;">
+      <div id="rc-status-box" style="margin-top:16px;padding:12px 14px;background:#f7f7f7;border:1px solid #eee;font-size:10px;color:#999;line-height:1.7;max-width:440px;">
         Reports Contact from your account profile will be used automatically. Make sure it is set in <strong style="color:#000;cursor:pointer;" onclick="showTab('reportscontact')">Reports Contact</strong> before creating an event.
       </div>
       <div class="form-msg" id="create-msg"></div>
@@ -392,6 +392,7 @@ function showPortal() {
   showScreen('portal');
   document.getElementById('top-org-name').textContent = adminData.org_name;
   loadEvents();
+  checkRcStatus();
 }
 
 function showTab(name) {
@@ -400,10 +401,31 @@ function showTab(name) {
   document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
   var el = document.getElementById('tab-'+name);
   if (el) el.classList.add('active');
+  if (name==='create') checkRcStatus();
   if (name==='events') loadEvents();
   if (name==='account') loadAccount();
   if (name==='reportscontact') loadReportsContact();
   if (name==='invoices') loadInvoices();
+}
+
+function checkRcStatus() {
+  var box = document.getElementById('rc-status-box');
+  if (!box) return;
+  var hasRc = adminData && adminData.reports_contact_name && adminData.reports_contact_phone;
+  if (!hasRc) {
+    box.style.background = '#fff5f5';
+    box.style.border = '1px solid #ffcccc';
+    box.innerHTML = '<span style="color:#cc0000;font-size:12px;margin-right:6px;">&#9888;</span>'
+      + '<span style="color:#cc0000;">Reports Contact not set. </span>'
+      + '<strong style="color:#cc0000;cursor:pointer;text-decoration:underline;" onclick="showTab('reportscontact')">Set it now</strong>'
+      + '<span style="color:#cc0000;"> before creating an event.</span>';
+  } else {
+    box.style.background = '#f7f7f7';
+    box.style.border = '1px solid #eee';
+    box.innerHTML = 'Reports Contact from your account profile will be used automatically. Make sure it is set in '
+      + '<strong style="color:#000;cursor:pointer;" onclick="showTab('reportscontact')">Reports Contact</strong>'
+      + ' before creating an event.';
+  }
 }
 
 async function doLogin() {
