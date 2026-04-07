@@ -214,6 +214,7 @@
     <button class="tab active" onclick="showTab('create')">New Event</button>
     <button class="tab" onclick="showTab('events')">My Events</button>
     <button class="tab" onclick="showTab('account')">My Account</button>
+    <button class="tab" onclick="showTab('reportscontact')">Reports Contact</button>
     <button class="tab" onclick="showTab('invoices')">Invoices</button>
   </div>
 
@@ -283,7 +284,7 @@
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
       <div style="margin-top:16px;padding:12px 14px;background:#f7f7f7;border:1px solid #eee;font-size:10px;color:#999;line-height:1.7;max-width:440px;">
-        Reports Contact from your account profile will be used automatically. Make sure it is set in <strong style="color:#000;cursor:pointer;" onclick="showTab('account')">My Account</strong> before creating an event.
+        Reports Contact from your account profile will be used automatically. Make sure it is set in <strong style="color:#000;cursor:pointer;" onclick="showTab('reportscontact')">Reports Contact</strong> before creating an event.
       </div>
       <div class="form-msg" id="create-msg"></div>
       <div style="background:#f7f7f7;border:1px solid #eee;padding:12px 14px;font-size:10px;color:#999;line-height:1.7;max-width:440px;margin-bottom:12px;">
@@ -319,6 +320,10 @@
   <div class="content" id="tab-account">
     <div class="section-title">My Account</div>
     <div id="account-content"><div class="loading">Loading...</div></div>
+  </div>
+
+  <div class="content" id="tab-reportscontact">
+    <div id="reportscontact-content"><div class="loading">Loading...</div></div>
   </div>
 
   <div class="content" id="tab-invoices">
@@ -382,13 +387,14 @@ function showPortal() {
 }
 
 function showTab(name) {
-  var tabs = ['create','events','account','invoices'];
+  var tabs = ['create','events','account','reportscontact','invoices'];
   document.querySelectorAll('.tab').forEach(function(t,i) { t.classList.toggle('active', tabs[i]===name); });
   document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
   var el = document.getElementById('tab-'+name);
   if (el) el.classList.add('active');
   if (name==='events') loadEvents();
   if (name==='account') loadAccount();
+  if (name==='reportscontact') loadReportsContact();
   if (name==='invoices') loadInvoices();
 }
 
@@ -796,14 +802,7 @@ async function loadAccount() {
       +'<div class="form-row"><label>Phone</label><input type="tel" id="acc-phone" value="'+esc(a.phone||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
       +(hasBilling?'':'<div id="acc-billing-msg" style="font-size:11px;margin-bottom:8px;"></div><button class="btn-green" onclick="doSaveBilling()">Save Billing Info</button>')
       +'</div>'
-      +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
-      +'<div class="section-title" style="margin-bottom:8px;">Reports Contact</div>'
-      +'<div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:12px;">Must be reachable by phone during all your events. Required before creating an event.</div>'
-      +'<div class="form-row"><label>Reports Contact Name *</label><input type="text" id="acc-rc-name" value="'+esc(a.reports_contact_name||'')+'" /></div>'
-      +'<div class="form-row"><label>Reports Contact Phone *</label><input type="tel" id="acc-rc-phone" placeholder="+436501234567" value="'+esc(a.reports_contact_phone||'')+'" /></div>'
-      +'<div id="acc-rc-msg" style="font-size:11px;margin-bottom:8px;"></div>'
-      +'<button class="btn-green" onclick="doSaveReportsContact()">Save Reports Contact</button>'
-      +'</div>'
+
       +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
       +'<div class="section-title" style="margin-bottom:8px;">Change Password</div>'
       +'<div class="form-row"><label>New Password (min. 8 characters)</label><input type="password" id="acc-pw1" /></div>'
@@ -838,11 +837,31 @@ async function doSaveBilling() {
   } catch(e) { msg.textContent='Connection error.'; }
 }
 
+async function loadReportsContact() {
+  var el=document.getElementById('reportscontact-content');
+  el.innerHTML='<div class="loading">Loading...</div>';
+  try {
+    var r=await fetch(API+'/api/event-admin/me?t='+Date.now(), {headers:{Authorization:'Bearer '+token}});
+    var d=await r.json();
+    if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
+    var a=d.admin;
+    el.innerHTML='<div class="form-box">'
+      +'<div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:16px;">This person must be reachable by phone during all your events. Required before creating an event. After nickradar confirms your Reports Contact, each new event will use this data automatically.</div>'
+      +'<div class="form-row"><label>Reports Contact Name *</label><input type="text" id="rc-name" value="'+esc(a.reports_contact_name||'')+'" /></div>'
+      +'<div class="form-row"><label>Reports Contact Phone * (international format, e.g. +436501234567)</label><input type="tel" id="rc-phone" placeholder="+436501234567" value="'+esc(a.reports_contact_phone||'')+'" /></div>'
+      +'<div id="rc-msg" style="font-size:11px;margin-bottom:8px;"></div>'
+      +'<button class="btn-green" onclick="doSaveReportsContact()">Save Reports Contact</button>'
+      +'</div>';
+  } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
+}
+
 async function doSaveReportsContact() {
-  var msg=document.getElementById('acc-rc-msg');
+  var msg=document.getElementById('rc-msg')||document.getElementById('acc-rc-msg');
   msg.style.color='red'; msg.textContent='';
-  var name=document.getElementById('acc-rc-name').value.trim();
-  var phone=document.getElementById('acc-rc-phone').value.trim();
+  var nameEl=document.getElementById('rc-name')||document.getElementById('acc-rc-name');
+  var phoneEl=document.getElementById('rc-phone')||document.getElementById('acc-rc-phone');
+  var name=nameEl?nameEl.value.trim():'';
+  var phone=phoneEl?phoneEl.value.trim():'';
   if (!name||!phone) { msg.textContent='Name and phone are required.'; return; }
   try {
     var r=await fetch(API+'/api/event-admin/reports-contact',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({reports_contact_name:name,reports_contact_phone:phone})});
