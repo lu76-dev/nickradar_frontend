@@ -230,10 +230,10 @@
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
       <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eee;">
-        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-bottom:12px;">Security Contact *</div>
-        <div style="font-size:10px;color:#999;line-height:1.6;margin-bottom:14px;">This person is responsible for on-site security and participant reports. The event will only start after nickradar confirms this contact.</div>
-        <div class="form-row"><label>Security Responsible Name *</label><input type="text" id="new-security-name" /></div>
-        <div class="form-row"><label>Security Phone * (international format, e.g. +436501234567)</label><input type="tel" id="new-security-phone" placeholder="+436501234567" /></div>
+        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-bottom:12px;">Reports Contact *</div>
+        <div style="font-size:10px;color:#999;line-height:1.6;margin-bottom:14px;">This person will be contactable in case of participant reports during the event. The event will only start after nickradar confirms this contact.</div>
+        <div class="form-row"><label>Reports Contact Name *</label><input type="text" id="new-security-name" /></div>
+        <div class="form-row"><label>Reports Contact Phone * (international format, e.g. +436501234567)</label><input type="tel" id="new-security-phone" placeholder="+436501234567" /></div>
       </div>
       <div class="form-msg" id="create-msg"></div>
       <div style="background:#f7f7f7;border:1px solid #eee;padding:12px 14px;font-size:10px;color:#999;line-height:1.7;max-width:440px;margin-bottom:12px;">
@@ -386,14 +386,14 @@ async function doCreateEvent() {
   if (!eventName) { msg.textContent='Event name required.'; return; }
   if (!startAt) { msg.textContent='Start time required.'; return; }
   if (!count||count<24) { msg.textContent='Minimum 24 stickers.'; return; }
-  if (!securityName) { msg.textContent='Security responsible name required.'; return; }
-  if (!securityPhone) { msg.textContent='Security phone number required.'; return; }
+  if (!securityName) { msg.textContent='Reports contact name required.'; return; }
+  if (!securityPhone) { msg.textContent='Reports contact phone required.'; return; }
   msg.style.color='#666'; msg.textContent='Generating stickers...';
   try {
     var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,security_name:securityName,security_phone:securityPhone}) });
     var d = await r.json();
     if (!d.success) { msg.style.color='red'; msg.textContent='Error: '+d.error; return; }
-    msg.style.color='green'; msg.textContent='✓ Event created! Awaiting security confirmation and payment.';
+    msg.style.color='green'; msg.textContent='✓ Event created! Awaiting reports contact confirmation and payment.';
     ['new-event-name','new-start-at','new-sticker-count','new-security-name','new-security-phone'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('price-hint').textContent='Enter quantity to see price.';
     showTab('events');
@@ -446,25 +446,25 @@ function fmtCountdown(ms) {
 function buildEasBox(e) {
   var line1, line2, line3;
   if (e.status==='finished') {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Security Verification</div>';
+    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
     var finStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:e.timezone||'Europe/Vienna'});
     var byStr=e.stopped_by?' · '+e.stopped_by.replace(/_/g,' '):'';
     line3='<div class="eas-line" style="color:#bbb;">Finished '+finStr+byStr+'</div>';
   } else if (!e.security_confirmed) {
-    line1='<div class="eas-line" style="color:#cc6600;">⏳ Security Verification</div>';
+    line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
     line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
   } else if (!e.paid) {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Security Verification</div>';
+    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
     line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
   } else if (e.status==='pending') {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Security Verification</div>';
+    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
     line3='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#cc6600;">...</div>';
   } else {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Security Verification</div>';
+    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
     line3='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#00aa2a;">...</div>';
   }
@@ -477,7 +477,7 @@ function buildEventCard(e) {
   if (e.status==='active') { sLabel='ACTIVE'; }
   else if (e.status==='finished') { sLabel='FINISHED'; }
   else if (e.status==='pending') {
-    if (!e.security_confirmed||!e.paid) { sLabel='PENDING — Security & Payment required'; }
+    if (!e.security_confirmed||!e.paid) { sLabel='PENDING — Reports Contact & Payment required'; }
     else { sLabel='READY'; }
   } else { sLabel=e.status.toUpperCase(); }
   var tz=e.timezone||'Europe/Vienna';
@@ -504,7 +504,7 @@ function buildEventCard(e) {
   var rightActions='';
   if (e.status==='active') { rightActions='<button class="btn-action btn-action-stop" onclick="doStopEvent('+e.id+')">⚠ STOP EVENT</button>'; }
   var securityInfo=e.security_name
-    ?'<span>Security: <strong>'+e.security_name+'</strong> '+e.security_phone+(e.security_confirmed?' <span style="color:green;font-size:9px;">✓</span>':' <span style="color:#cc6600;font-size:9px;">⏳</span>')+'</span>'
+    ?'<span>Reports Contact: <strong>'+e.security_name+'</strong> '+e.security_phone+(e.security_confirmed?' <span style="color:green;font-size:9px;">✓</span>':' <span style="color:#cc6600;font-size:9px;">⏳</span>')+'</span>'
     :'';
   return '<div class="event-card">'
     +'<div class="event-card-head">'

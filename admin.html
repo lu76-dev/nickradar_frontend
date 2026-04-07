@@ -190,11 +190,11 @@ async function loadEvents() {
     var needsPayment=events.filter(function(e){return e.status==='pending'&&e.security_confirmed&&!e.paid;});
     var alertHtml='';
     if (needsSecurity.length>0) {
-      alertHtml+='<div class="alert-box alert-box-security"><strong>⏳ '+needsSecurity.length+' event(s) awaiting security confirmation:</strong><br><br>'
+      alertHtml+='<div class="alert-box alert-box-security"><strong>⏳ '+needsSecurity.length+' event(s) awaiting reports contact confirmation:</strong><br><br>'
         +needsSecurity.map(function(e){
           return '<strong>'+esc(e.event_name)+'</strong> · '+esc(e.admin_org)
-            +' · '+(e.security_name?esc(e.security_name)+' ('+esc(e.security_phone)+')':'no security contact')
-            +' &nbsp;<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Confirm Security</button>';
+            +' · '+(e.security_name?esc(e.security_name)+' ('+esc(e.security_phone)+')':'no reports contact')
+            +' &nbsp;<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Confirm Reports Contact</button>';
         }).join('<br>')
         +'</div>';
     }
@@ -210,7 +210,7 @@ async function loadEvents() {
     var rows=events.map(function(e){
       var pendingInfo='';
       if (e.status==='pending') {
-        if (!e.security_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ security</span>';
+        if (!e.security_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ reports contact</span>';
         else if (!e.paid)          pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ payment</span>';
         else                       pendingInfo=' <span style="color:green;font-size:9px;">✓ ready</span>';
       }
@@ -224,7 +224,7 @@ async function loadEvents() {
         actions+='<button class="btn-sm" onclick="showDuration('+e.id+',\''+e.ends_at+'\')">Duration</button>';
       }
       if (!e.security_confirmed&&e.status==='pending') {
-        actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Security</button>';
+        actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Reports Contact</button>';
       }
       if (e.security_confirmed&&!e.paid&&e.status==='pending') {
         actions+='<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>';
@@ -238,13 +238,13 @@ async function loadEvents() {
     }).join('');
     setContent(alertHtml
       +'<div class="toolbar"><button class="btn-sm" onclick="loadEvents()">↻ Refresh</button><span class="count">'+events.length+' events</span></div>'
-      +'<table><thead><tr><th>ID</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Security</th><th>Actions</th></tr></thead>'
+      +'<table><thead><tr><th>ID</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Reports Contact</th><th>Actions</th></tr></thead>'
       +'<tbody>'+(rows||'<tr><td colspan="12" class="empty">No events yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
 
 async function confirmSecurity(id) {
-  if (!confirm('Confirm security contact for this event?\n\nThis allows the event to proceed to payment and start.')) return;
+  if (!confirm('Confirm reports contact for this event?\n\nThis allows the event to proceed to payment and start.')) return;
   try {
     var r=await fetch(API+'/api/admin/events/'+id+'/confirm-security',{method:'POST',headers:{'x-admin-key':adminKey}});
     var d=await r.json();
