@@ -219,6 +219,8 @@
 
   <div class="content active" id="tab-create">
     <div class="section-title">Create New Nickname Event</div>
+    <div id="billing-alert" style="display:none;background:#fff5f5;border:1px solid #ffcccc;padding:12px 14px;max-width:440px;margin-bottom:20px;font-size:11px;color:#cc0000;line-height:1.6;"></div>
+    <div id="create-form-wrap">
     <div class="form-box">
       <div class="form-row"><label>Event Name</label><input type="text" id="new-event-name" /></div>
       <div class="form-row">
@@ -305,6 +307,7 @@
         <span style="font-size:10px;color:#bbb;letter-spacing:1px;">Secure payment with Stripe</span>
       </div>
       <button class="btn-green" onclick="doCreateEvent()">Pay &amp; Create Event</button>
+    </div>
     </div>
   </div>
 
@@ -406,11 +409,36 @@ function showTab(name) {
   if (name==='invoices') loadInvoices();
 }
 
-function prefillRcName() {
+async function prefillRcName() {
   var nameEl = document.getElementById('new-rc-name');
   if (nameEl && adminData && adminData.contact_name && !nameEl.value) {
     nameEl.value = adminData.contact_name;
   }
+  await checkBillingStatus();
+}
+
+async function checkBillingStatus() {
+  var alert = document.getElementById('billing-alert');
+  var wrap = document.getElementById('create-form-wrap');
+  if (!alert || !wrap) return;
+  try {
+    var r = await fetch(API+'/api/event-admin/me?t='+Date.now(), {headers:{Authorization:'Bearer '+token}});
+    var d = await r.json();
+    if (!d.success) return;
+    var a = d.admin;
+    var hasBilling = !!(a.street && a.street_number && a.postal_code && a.city);
+    if (!hasBilling) {
+      alert.style.display = 'block';
+      alert.innerHTML = '&#9888; Please complete your billing information before creating an event. '
+        + '<strong style="cursor:pointer;text-decoration:underline;color:#cc0000;" onclick="showTab('account')">Go to My Account</strong>';
+      wrap.style.opacity = '0.4';
+      wrap.style.pointerEvents = 'none';
+    } else {
+      alert.style.display = 'none';
+      wrap.style.opacity = '1';
+      wrap.style.pointerEvents = 'auto';
+    }
+  } catch(e) {}
 }
 
 async function doLogin() {
@@ -861,7 +889,7 @@ async function doSaveBilling() {
     var d=await r.json();
     if (!d.success) { msg.textContent=d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Saved.';
-    setTimeout(function(){loadAccount();},800);
+    setTimeout(function(){loadAccount(); checkBillingStatus();},800);
   } catch(e) { msg.textContent='Connection error.'; }
 }
 
