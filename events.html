@@ -418,9 +418,9 @@ async function prefillRcName() {
 }
 
 async function checkBillingStatus() {
-  var alert = document.getElementById('billing-alert');
+  var alertBox = document.getElementById('billing-alert');
   var wrap = document.getElementById('create-form-wrap');
-  if (!alert || !wrap) return;
+  if (!alertBox || !wrap) return;
   try {
     var r = await fetch(API+'/api/event-admin/me?t='+Date.now(), {headers:{Authorization:'Bearer '+token}});
     var d = await r.json();
@@ -428,13 +428,13 @@ async function checkBillingStatus() {
     var a = d.admin;
     var hasBilling = !!(a.street && a.street_number && a.postal_code && a.city);
     if (!hasBilling) {
-      alert.style.display = 'block';
-      alert.innerHTML = "&#9888; Please complete your billing information before creating an event. "
+      alertBox.style.display = 'block';
+      alertBox.innerHTML = "&#9888; Please complete your billing information before creating an event. "
         + "<strong style='cursor:pointer;text-decoration:underline;color:#cc0000;' onclick='showTab("account")'>Go to My Account</strong>";
       wrap.style.opacity = '0.4';
       wrap.style.pointerEvents = 'none';
     } else {
-      alert.style.display = 'none';
+      alertBox.style.display = 'none';
       wrap.style.opacity = '1';
       wrap.style.pointerEvents = 'auto';
     }
