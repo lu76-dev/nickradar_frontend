@@ -924,7 +924,7 @@ async function loadInvoices() {
     var d=await r.json();
     if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
     if (d.invoices.length===0) { el.innerHTML='<div class="empty">No invoices yet. Invoices are generated automatically when an event ends.</div>'; return; }
-    var html='<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#000;color:#fff;">'
+    var html='<div class="section-title">My Invoices</div><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#000;color:#fff;">'
       +'<th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:2px;">No.</th>'
       +'<th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:2px;">Event</th>'
       +'<th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:2px;">Date</th>'
