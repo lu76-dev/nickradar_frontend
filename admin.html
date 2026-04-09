@@ -296,7 +296,7 @@ async function loadEvents() {
       var actions='';
       if (e.status==='active'||e.status==='pending') {
         actions+='<button class="btn-sm-danger" onclick="stopEvent('+e.id+')">Stop</button>';
-        actions+='<button class="btn-sm" onclick="showDuration('+e.id+',\''+e.ends_at+'\',\''+e.timezone+'\')">Duration</button>';
+        actions+='<button class="btn-sm" onclick="showEffectiveTimes('+e.id+',\''+e.timezone+'\',\''+e.effective_start_at+'\',\''+e.effective_end_at+'\')">Edit Times</button>';
       }
       if (!e.reports_contact_confirmed&&e.status==='pending') {
         actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Reports Contact</button>';
@@ -374,6 +374,164 @@ async function showDuration(id, currentEndsAt, timezone) {
     if(d.success) loadEvents(); else alert('Error: '+d.error);
   } catch(e){alert('Connection error.');}
 }
+
+async function loadParticipantList(eventId, eventName) {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/events/'+eventId+'/stickers',{headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if (!d.success){setContent('<div class="empty">Error.</div>');return;}
+    var stickers=d.stickers, perRow=3, total=stickers.length;
+    var filled=total%perRow===0?total:total+(perRow-(total%perRow));
+    var html='<button class="back-btn" onclick="loadEvents()">← Back to Events</button>'
+      +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">'+esc(eventName)+'</div>'
+      +'<div class="participant-list-grid">';
+    for(var i=0;i<filled;i++){
+      if(i<stickers.length){
+        var s=stickers[i], isInactive=s.status==='invalidated'||s.status==='blocked';
+        var sLabel={unused:'not activated',active:'active',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
+        var sClass=s.status==='active'?'participant-status online':'participant-status';
+        var invBtn=s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="invalidateSticker('+s.id+','+eventId+',\''+esc(eventName)+'\')" title="Invalidate">✕</button>':'';
+        html+='<div class="participant-cell'+(isInactive?' inactive-cell':'')+'">'+invBtn
+          +'<div class="participant-nick">'+esc(s.nickname)+'</div>'
+          +'<div class="participant-code">'+s.code+'</div>'
+          +'<div class="'+sClass+'">'+sLabel+'</div></div>';
+      } else { html+='<div class="participant-cell empty-cell"></div>'; }
+    }
+    html+='</div>';
+    setContent(html);
+  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+
+async function invalidateSticker(stickerId, eventId, eventName) {
+  if(!confirm('Invalidate this sticker?\nParticipant will be logged out.')) return;
+  try { var r=await fetch(API+'/api/admin/stickers/'+stickerId+'/invalidate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadParticipantList(eventId,eventName); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+}
+
+async function loadInvoices() {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/invoices',{headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if(!d.success){setContent('<div class="empty">Error.</div>');return;}
+    var rows=d.invoices.map(function(i){
+      var invLink=i.event_id?'<a href="'+API+'/api/admin/events/'+i.event_id+'/invoice?key='+encodeURIComponent(adminKey)+'" target="_blank" style="color:#000;text-decoration:underline;">'+esc(i.invoice_number||'—')+'</a>':esc(i.invoice_number||'—');
+      return '<tr><td>'+invLink+'</td><td>'+esc(i.org_name)+'</td><td>'+esc(i.event_name||'—')+'</td>'
+        +'<td>'+i.quantity+'</td><td>€'+parseFloat(i.unit_price||0).toFixed(2)+'</td>'
+        +'<td><strong>€'+parseFloat(i.total||0).toFixed(2)+'</strong></td>'
+        +'<td>'+esc(i.payment_provider||'—')+'</td><td>'+fmt(i.paid_at)+'</td><td>'+fmt(i.created_at)+'</td></tr>';
+    }).join('');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadInvoices()">↻ Refresh</button><span class="count">'+d.invoices.length+' invoices</span></div>'
+      +'<table><thead><tr><th>No.</th><th>Org</th><th>Event</th><th>Qty</th><th>Unit</th><th>Total</th><th>Provider</th><th>Paid</th><th>Created</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="9" class="empty">No invoices yet.</td></tr>')+'</tbody></table>');
+  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+
+async function loadReports() {
+  setContent('<div class="loading">Loading...</div>');
+  try {
+    var r=await fetch(API+'/api/admin/reports',{headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if(!d.success){setContent('<div class="empty">Error.</div>');return;}
+    var rows=d.reports.map(function(r){
+      return '<tr><td>'+esc(r.event_name)+'</td><td>'+esc(r.reporter_nickname)+'</td><td>'+esc(r.reported_nickname)+'</td>'
+        +'<td>'+esc(r.reason)+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
+        +'<td>'+fmt(r.created_at)+'</td></tr>';
+    }).join('');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button><span class="count">'+d.reports.length+' reports</span></div>'
+      +'<table><thead><tr><th>Event</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="6" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
+  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+</script>
+
+<div class="modal-overlay" id="ea-modal">
+  <div class="modal-box">
+    <div class="modal-title">Modify EA Data — <span id="modal-ea-name"></span></div>
+
+    <div class="modal-section">Account Info</div>
+    <div class="modal-row"><label>Company Name</label><input type="text" id="m-org-name" /></div>
+    <div class="modal-row"><label>Contact Person</label><input type="text" id="m-contact-name" /></div>
+    <div class="modal-row"><label>Business Type</label><input type="text" id="m-business-type" /></div>
+    <div class="modal-row"><label>Country</label><input type="text" id="m-country" /></div>
+    <div class="modal-row"><label>Email</label><input type="email" id="m-email" /></div>
+
+    <div class="modal-section">Billing Info</div>
+    <div class="modal-row"><label>Street</label><input type="text" id="m-street" /></div>
+    <div class="modal-row"><label>Street Number</label><input type="text" id="m-street-number" /></div>
+    <div class="modal-row"><label>Postal Code</label><input type="text" id="m-postal-code" /></div>
+    <div class="modal-row"><label>City</label><input type="text" id="m-city" /></div>
+    <div class="modal-row"><label>VAT / UID</label><input type="text" id="m-vat" /></div>
+
+    <div class="modal-section">Reports Contact</div>
+    <div class="modal-row"><label>Name</label><input type="text" id="m-rc-name" /></div>
+    <div class="modal-row"><label>Phone</label><input type="tel" id="m-rc-phone" /></div>
+
+    <div class="modal-section">Change Password</div>
+    <div class="modal-row"><label>New Password (min. 8 characters)</label><input type="password" id="m-password" /></div>
+
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-sm-green" onclick="saveEaData()">Save</button>
+      <button class="btn-sm" onclick="closeEaModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>function localToUTC(localDateStr, tz) {
+  var parts = localDateStr.split('T');
+  var d = parts[0].split('-').map(Number);
+  var t = (parts[1]||'00:00').split(':').map(Number);
+  var utc = Date.UTC(d[0], d[1]-1, d[2], t[0], t[1]);
+  for (var i = 0; i < 2; i++) {
+    var local = new Date(utc).toLocaleString('en-US', {
+      timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', hour12: false
+    });
+    var p = local.match(/(\d+)\/(\d+)\/(\d+),\s+(\d+):(\d+)/);
+    var localUTC = Date.UTC(+p[3], +p[1]-1, +p[2], +p[4]%24, +p[5]);
+    utc += Date.UTC(d[0], d[1]-1, d[2], t[0], t[1]) - localUTC;
+  }
+  return new Date(utc);
+}
+
+function utcToLocal(utcDateStr, tz) {
+  if (!utcDateStr || utcDateStr === 'null' || utcDateStr === 'undefined') return '';
+  var d = new Date(utcDateStr);
+  var parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', hour12: false
+  }).formatToParts(d);
+  var pp = {};
+  parts.forEach(function(x){ pp[x.type]=x.value; });
+  return pp.year+'-'+pp.month+'-'+pp.day+'T'+(pp.hour==='24'?'00':pp.hour)+':'+pp.minute;
+}
+
+async function showEffectiveTimes(id, timezone, effStart, effEnd) {
+  var tz = timezone || 'Europe/Vienna';
+  var startLocal = utcToLocal(effStart, tz);
+  var endLocal = utcToLocal(effEnd, tz);
+  var msg = 'Edit Effective Times (' + tz + ')\n\n'
+    + 'Effective Start (YYYY-MM-DDTHH:MM):\n(current: ' + (startLocal||'not set') + ')';
+  var inputStart = prompt(msg, startLocal||'');
+  if (inputStart === null) return;
+  var inputEnd = prompt('Effective End (YYYY-MM-DDTHH:MM):\n(current: ' + (endLocal||'not set') + ')', endLocal||'');
+  if (inputEnd === null) return;
+  var body = {};
+  if (inputStart && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(inputStart)) {
+    body.effective_start_at = localToUTC(inputStart, tz).toISOString();
+  }
+  if (inputEnd && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(inputEnd)) {
+    body.effective_end_at = localToUTC(inputEnd, tz).toISOString();
+  }
+  if (!body.effective_start_at && !body.effective_end_at) { alert('No valid input.'); return; }
+  try {
+    var r = await fetch(API+'/api/admin/events/'+id+'/effective-times', {method:'PUT', headers:{'Content-Type':'application/json','x-admin-key':adminKey}, body:JSON.stringify(body)});
+    var d = await r.json();
+    if (d.success) loadEvents(); else alert('Error: '+d.error);
+  } catch(e) { alert('Connection error.'); }
+}
+
 
 async function loadParticipantList(eventId, eventName) {
   setContent('<div class="loading">Loading...</div>');
