@@ -37,7 +37,7 @@
     tr:hover td { background: #fafafa; }
     .status-pending { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; border: 1px solid #ccc; color: #999; text-transform: uppercase; }
     .status-active { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #00ff41; color: #000; text-transform: uppercase; }
-    .status-blocked { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #000; color: #fff; text-transform: uppercase; }
+    .status-deleted { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #eee; color: #999; text-transform: uppercase; }
     .status-finished { font-size: 9px; letter-spacing: 2px; padding: 2px 6px; background: #eee; color: #999; text-transform: uppercase; }
     .btn-sm { background: #fff; border: 1px solid #ccc; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; letter-spacing: 1px; margin-right: 4px; white-space: nowrap; }
     .btn-sm:hover { border-color: #000; }
@@ -165,12 +165,11 @@ async function loadEventAdmins() {
     var rows=d.admins.map(function(a){
       var actions='';
       if (a.status==='pending') actions+='<span style="font-size:10px;color:#cc6600;letter-spacing:1px;">⏳ Email verification pending</span>';
-      if (a.status==='active')  actions+='<button class="btn-sm-danger" onclick="blockAdmin('+a.id+')">Block</button>';
-      if (a.status==='blocked') actions+='<button class="btn-sm" onclick="unblockAdmin('+a.id+')">Unblock</button>';
-      actions+='<button class="btn-sm" onclick="openEaModal('+a.id+')">Modify EA Data</button>';
+      if (a.status!=='deleted') actions+='<button class="btn-sm" onclick="openEaModal('+a.id+')">Modify EA Data</button>';
       var eaNum='EA-'+String(a.id).padStart(4,'0');
-      return '<tr><td>'+eaNum+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
-        +'<td><span class="status-'+a.status+'">'+a.status.toUpperCase()+'</span></td><td>'+fmt(a.created_at)+'</td><td>'+fmt(a.last_login_at)+'</td><td>'+actions+'</td></tr>';
+      var rowStyle=a.status==='deleted'?' style="opacity:0.5;"':'';
+      return '<tr'+rowStyle+'><td>'+eaNum+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
+        +'<td><span class="status-'+(a.status==='deleted'?'deleted':a.status)+'">'+(a.status==='deleted'?'DELETED':a.status.toUpperCase())+'</span></td><td>'+fmt(a.created_at)+'</td><td>'+fmt(a.last_login_at)+'</td><td>'+actions+'</td></tr>';
     }).join('');
     setContent('<div class="toolbar"><button class="btn-sm" onclick="loadEventAdmins()">↻ Refresh</button><span class="count">'+d.admins.length+' event admins</span></div>'
       +'<table><thead><tr><th>Kundennr.</th><th>Organization</th><th>Contact</th><th>Email</th><th>Status</th><th>Registered</th><th>Last Login</th><th>Actions</th></tr></thead>'
@@ -178,13 +177,7 @@ async function loadEventAdmins() {
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
 
-async function unblockAdmin(id) {
-  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/unblock',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
-}
-async function blockAdmin(id) {
-  if(!confirm('Block this Event Admin?')) return;
-  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/block',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
-}
+
 var currentEaId = null;
 
 async function openEaModal(id) {
