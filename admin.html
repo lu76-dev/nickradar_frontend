@@ -200,7 +200,6 @@ async function openEaModal(id) {
     document.getElementById('m-postal-code').value = a.postal_code||'';
     document.getElementById('m-city').value = a.city||'';
     document.getElementById('m-vat').value = a.vat||'';
-    document.getElementById('m-phone').value = a.phone||'';
     document.getElementById('m-rc-name').value = a.reports_contact_name||'';
     document.getElementById('m-rc-phone').value = a.reports_contact_phone||'';
     document.getElementById('m-password').value = '';
@@ -229,7 +228,6 @@ async function saveEaData() {
     postal_code: document.getElementById('m-postal-code').value.trim()||null,
     city: document.getElementById('m-city').value.trim()||null,
     vat: document.getElementById('m-vat').value.trim()||null,
-    phone: document.getElementById('m-phone').value.trim()||null,
     reports_contact_name: document.getElementById('m-rc-name').value.trim()||null,
     reports_contact_phone: document.getElementById('m-rc-phone').value.trim()||null
   };
@@ -458,7 +456,6 @@ async function loadReports() {
     <div class="modal-row"><label>Postal Code</label><input type="text" id="m-postal-code" /></div>
     <div class="modal-row"><label>City</label><input type="text" id="m-city" /></div>
     <div class="modal-row"><label>VAT / UID</label><input type="text" id="m-vat" /></div>
-    <div class="modal-row"><label>Phone</label><input type="tel" id="m-phone" /></div>
 
     <div class="modal-section">Reports Contact</div>
     <div class="modal-row"><label>Name</label><input type="text" id="m-rc-name" /></div>

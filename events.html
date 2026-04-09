@@ -844,7 +844,7 @@ async function loadAccount() {
     var ro='background:#f5f5f5;color:#999;';
     var bTypeLabels={agency_promoter:'Agency / Promoter',club_bar_lounge:'Club / Bar / Lounge',conference_congress:'Conference / Congress',corporate_networking:'Corporate / Networking Event',cruise_travel:'Cruise / Travel Event',festival_open_air:'Festival / Open Air Organizer',hotel_resort:'Hotel / Resort / Hospitality',music_concert:'Music / Concert Venue',sports_gaming:'Sports Event / Gaming',team_building:'Team Building Event',university_campus:'University / Campus Event',other:'Other'};
     var bTypeLabel=bTypeLabels[a.business_type]||a.business_type||'—';
-    var hasBilling=!!(a.street&&a.street_number&&a.postal_code&&a.city&&a.phone);
+    var hasBilling=!!(a.street&&a.street_number&&a.postal_code&&a.city);
     el.innerHTML='<div style="max-width:440px;">'
       +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
       +'<div class="form-row"><label>Customer ID</label><input type="text" value="EA-'+String(a.id).padStart(4,'0')+'" disabled style="'+ro+'" /></div>'
@@ -855,11 +855,11 @@ async function loadAccount() {
       +'<div class="form-row"><label>Email</label><input type="email" value="'+esc(a.email)+'" disabled style="'+ro+'" /></div>'
       +'</div>'
       +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
+      +'<div class="section-title" style="margin-bottom:8px;">Billing Info</div>'
       +(hasBilling?'':'<div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:12px;">Required for invoicing. Once saved, these cannot be changed.</div>')
       +'<div class="form-row"><label>Street</label><input type="text" id="acc-street" value="'+esc(a.street||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'+'<div class="form-row"><label>Number</label><input type="text" id="acc-street-number" value="'+esc(a.street_number||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
       +'<div class="form-row"><label>Postal Code</label><input type="text" id="acc-postal" value="'+esc(a.postal_code||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'+'<div class="form-row"><label>City</label><input type="text" id="acc-city" value="'+esc(a.city||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
       +'<div class="form-row"><label>VAT / UID Number</label><input type="text" id="acc-vat" value="'+esc(a.vat||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
-      +'<div class="form-row"><label>Phone</label><input type="tel" id="acc-phone" value="'+esc(a.phone||'')+'" '+(hasBilling?'disabled style="'+ro+'"':'')+' /></div>'
       +(hasBilling?'':'<div id="acc-billing-msg" style="font-size:11px;margin-bottom:8px;"></div><button class="btn-green" onclick="doSaveBilling()">Save Billing Info</button>')
       +'</div>'
 
@@ -887,10 +887,9 @@ async function doSaveBilling() {
   var postal=document.getElementById('acc-postal').value.trim();
   var city=document.getElementById('acc-city').value.trim();
   var vat=document.getElementById('acc-vat').value.trim();
-  var phone=document.getElementById('acc-phone').value.trim();
-  if (!street||!streetNumber||!postal||!city||!phone) { msg.textContent='Street, number, postal code, city and phone are required.'; return; }
+  if (!street||!streetNumber||!postal||!city) { msg.textContent='Street, number, postal code and city are required.'; return; }
   try {
-    var r=await fetch(API+'/api/event-admin/profile',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({street:street,street_number:streetNumber,postal_code:postal,city:city,vat:vat||null,phone:phone})});
+    var r=await fetch(API+'/api/event-admin/profile',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({street:street,street_number:streetNumber,postal_code:postal,city:city,vat:vat||null})});
     var d=await r.json();
     if (!d.success) { msg.textContent=d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Saved.';
