@@ -691,24 +691,19 @@ function fmtCountdown(ms) {
 }
 
 function buildEasBox(e) {
-  var line1, line2, line3;
+  var line1='', line2='', line3='';
   if (e.status==='finished') {
     var byLabels={'time_expired':'Time Expired','event_admin':'Event Admin','nickradar_admin':'nickradar Admin'};
     line1='<div class="eas-line" style="color:#bbb;">'+(e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by):'Ended')+'</div>';
-    line2=''; line3='';
-  } else if (!e.paid) {
   } else if (!e.paid) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
-    line3='';
   } else if (e.status==='pending') {
     line1='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
     line2='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#cc6600;">...</div>';
-    line3='';
   } else {
     line1='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
     line2='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#00aa2a;">...</div>';
-    line3='';
   }
   var liveBadge=(e.status==='active')?'<div style="font-size:10px;font-weight:bold;letter-spacing:3px;color:#000;background:#00ff41;padding:2px 8px;margin-bottom:6px;display:inline-block;">● LIVE</div>':'';
   return '<div class="eas-box">'+liveBadge+line1+line2+line3+'</div>';
