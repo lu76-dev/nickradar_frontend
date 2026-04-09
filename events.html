@@ -429,8 +429,13 @@ async function checkBillingStatus() {
     var hasBilling = !!(a.street && a.street_number && a.postal_code && a.city);
     if (!hasBilling) {
       alertBox.style.display = 'block';
-      alertBox.innerHTML = "&#9888; Please complete your billing information before creating an event. "
-        + "<strong style='cursor:pointer;text-decoration:underline;color:#cc0000;' onclick='showTab("account")'>Go to My Account</strong>";
+      alertBox.innerHTML = '';
+      alertBox.appendChild(document.createTextNode('⚠ Please complete your billing information before creating an event. '));
+      var lnk = document.createElement('strong');
+      lnk.textContent = 'Go to My Account';
+      lnk.style.cssText = 'cursor:pointer;text-decoration:underline;color:#cc0000;';
+      lnk.onclick = function(){ showTab('account'); };
+      alertBox.appendChild(lnk);
       wrap.style.opacity = '0.4';
       wrap.style.pointerEvents = 'none';
     } else {
