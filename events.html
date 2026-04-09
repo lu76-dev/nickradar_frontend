@@ -680,7 +680,7 @@ function buildEventCard(e) {
     +'</div>'
     +'<div class="event-card-body" style="border-top:1px solid #f0f0f0;">'
     +'<span style="font-size:9px;color:#bbb;letter-spacing:1px;text-transform:uppercase;min-width:140px;">Effective Event Times:</span>'
-    +'<span>'+(e.effective_start_at?effStartStr:startStr)+' – '+(e.effective_end_at?effEndStr:endsStr)+' <span style="color:#bbb;font-size:10px;">('+tzLabel+')</span>'+(e.effective_start_at||e.effective_end_at?'&nbsp;&nbsp;· DURATION: <strong>'+effDurStr+'</strong>':'')+'</span>'
+    +'<span>'+(e.effective_start_at?effStartStr:startStr)+' – '+(e.effective_end_at?effEndStr:endsStr)+' <span style="color:#bbb;font-size:10px;">('+tzLabel+')</span>'+'</span>'
     +'</div>'
     +'<div class="event-card-body" style="border-top:1px solid #f0f0f0;justify-content:space-between;">'
     +'<div style="display:flex;gap:20px;">'
@@ -705,7 +705,8 @@ function startCountdowns(events) {
       var el=document.getElementById('eas-timer-'+e.id);
       if (!el) return;
       if (e.status==='active') {
-        var remaining=new Date(e.ends_at)-new Date();
+        var endTime=e.effective_end_at?new Date(e.effective_end_at):new Date(e.ends_at);
+        var remaining=endTime-new Date();
         if (remaining<=0) { el.textContent='ENDED'; el.style.color='#cc0000'; return; }
         el.textContent=fmtCountdown(remaining)+' remaining';
         el.style.color=remaining<10*60*1000?'#cc0000':'#00aa2a';
