@@ -213,6 +213,7 @@
   <div class="tabs">
     <button class="tab active" onclick="showTab('create')">New Event</button>
     <button class="tab" onclick="showTab('events')">My Events</button>
+    <button class="tab" id="tab-btn-reports" onclick="showTab('reports')">Reports</button>
     <button class="tab" onclick="showTab('account')">My Account</button>
     <button class="tab" onclick="showTab('invoices')">Invoices</button>
   </div>
@@ -330,6 +331,10 @@
     <div id="participantlist-content"><div class="loading">Loading...</div></div>
   </div>
 
+  <div class="content" id="tab-reports">
+    <div id="reports-content"><div class="loading">Loading...</div></div>
+  </div>
+
   <div class="content" id="tab-account">
     <div class="section-title">My Account</div>
     <div id="account-content"><div class="loading">Loading...</div></div>
@@ -398,7 +403,7 @@ function showPortal() {
 }
 
 function showTab(name) {
-  var tabs = ['create','events','account','invoices'];
+  var tabs = ['create','events','reports','account','invoices'];
   document.querySelectorAll('.tab').forEach(function(t,i) { t.classList.toggle('active', tabs[i]===name); });
   document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
   var el = document.getElementById('tab-'+name);
@@ -406,6 +411,7 @@ function showTab(name) {
   if (name==='create') prefillRcName();
   if (name==='events') loadEvents();
   if (name==='account') loadAccount();
+  if (name==='reports') loadReports();
   if (name==='invoices') loadInvoices();
 }
 
@@ -444,6 +450,84 @@ async function checkBillingStatus() {
       wrap.style.pointerEvents = 'auto';
     }
   } catch(e) {}
+}
+
+var _reportPollInterval = null;
+
+function startReportPolling() {
+  if (_reportPollInterval) clearInterval(_reportPollInterval);
+  checkReportsBadge();
+  _reportPollInterval = setInterval(checkReportsBadge, 30000);
+}
+
+async function checkReportsBadge() {
+  try {
+    var r = await fetch(API+'/api/events?t='+Date.now(), {headers:{Authorization:'Bearer '+token}});
+    var d = await r.json();
+    if (!d.success) return;
+    var activeEvents = d.events.filter(function(e){ return e.status==='active'; });
+    var openCount = 0;
+    for (var i=0; i<activeEvents.length; i++) {
+      var rr = await fetch(API+'/api/events/'+activeEvents[i].id+'/reports', {headers:{Authorization:'Bearer '+token}});
+      var rd = await rr.json();
+      if (rd.success) openCount += rd.reports.filter(function(r){ return !r.resolved; }).length;
+    }
+    var btn = document.getElementById('tab-btn-reports');
+    if (!btn) return;
+    if (openCount > 0) {
+      btn.textContent = 'Reports (' + openCount + ')';
+      btn.style.color = '#cc0000';
+      btn.style.fontWeight = 'bold';
+    } else {
+      btn.textContent = 'Reports';
+      btn.style.color = '';
+      btn.style.fontWeight = '';
+    }
+  } catch(e) {}
+}
+
+async function loadReports() {
+  var el = document.getElementById('reports-content');
+  el.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    var r = await fetch(API+'/api/events?t='+Date.now(), {headers:{Authorization:'Bearer '+token}});
+    var d = await r.json();
+    if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
+    var activeEvents = d.events.filter(function(e){ return e.status==='active'; });
+    if (activeEvents.length === 0) { el.innerHTML='<div class="empty">No active events. Reports are only visible during live events.</div>'; return; }
+    var allReports = [];
+    for (var i=0; i<activeEvents.length; i++) {
+      var rr = await fetch(API+'/api/events/'+activeEvents[i].id+'/reports', {headers:{Authorization:'Bearer '+token}});
+      var rd = await rr.json();
+      if (rd.success) rd.reports.forEach(function(rep){ rep._event_name = activeEvents[i].event_name; allReports.push(rep); });
+    }
+    if (allReports.length === 0) { el.innerHTML='<div class="empty">No reports yet.</div>'; return; }
+    var html = '<div class="section-title">Reports — Active Events</div>';
+    allReports.forEach(function(rep) {
+      var isOpen = !rep.resolved;
+      var rowStyle = isOpen ? 'border:1px solid #ffcccc;background:#fff5f5;margin-bottom:8px;padding:12px 14px;' : 'border:1px solid #eee;background:#fafafa;margin-bottom:8px;padding:12px 14px;opacity:0.6;';
+      var time = new Date(rep.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+      html += '<div style="'+rowStyle+'">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+        + '<span style="font-size:10px;color:#999;letter-spacing:1px;">'+esc(rep._event_name)+'  ·  '+time+'</span>'
+        + (isOpen ? '<button class="btn-outline" onclick="resolveReport('+rep.id+')">✓ Mark as Resolved</button>' : '<span style="font-size:10px;color:#999;">✓ Resolved</span>')
+        + '</div>'
+        + '<div style="font-size:12px;margin-bottom:4px;"><strong>'+esc(rep.reporter_nickname)+'</strong> <span style="color:#999;">reported</span> <strong>'+esc(rep.reported_nickname)+'</strong></div>'
+        + '<div style="font-size:11px;color:#666;">Reason: '+esc(rep.reason)+'</div>'
+        + (rep.details ? '<div style="font-size:11px;color:#999;margin-top:2px;">'+esc(rep.details)+'</div>' : '')
+        + '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
+}
+
+async function resolveReport(id) {
+  try {
+    var r = await fetch(API+'/api/reports/'+id+'/resolve', {method:'PUT', headers:{Authorization:'Bearer '+token}});
+    var d = await r.json();
+    if (d.success) { loadReports(); checkReportsBadge(); }
+    else alert('Error: '+d.error);
+  } catch(e) { alert('Connection error.'); }
 }
 
 async function doLogin() {

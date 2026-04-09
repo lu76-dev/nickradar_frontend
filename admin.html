@@ -464,15 +464,33 @@ async function loadReports() {
     var r=await fetch(API+'/api/admin/reports',{headers:{'x-admin-key':adminKey}});
     var d=await r.json();
     if(!d.success){setContent('<div class="empty">Error.</div>');return;}
-    var rows=d.reports.map(function(r){
-      return '<tr><td>'+esc(r.event_name)+'</td><td>'+esc(r.reporter_nickname)+'</td><td>'+esc(r.reported_nickname)+'</td>'
-        +'<td>'+esc(r.reason)+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
-        +'<td>'+fmt(r.created_at)+'</td></tr>';
-    }).join('');
-    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button><span class="count">'+d.reports.length+' reports</span></div>'
-      +'<table><thead><tr><th>Event</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th></tr></thead>'
-      +'<tbody>'+(rows||'<tr><td colspan="6" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
+    var open=d.reports.filter(function(r){return !r.resolved;});
+    var resolved=d.reports.filter(function(r){return r.resolved;});
+    var renderRow=function(r){
+      var rowStyle=r.resolved?'opacity:0.5;':'';
+      var resolveBtn=!r.resolved?'<button class="btn-sm-orange" onclick="resolveReport('+r.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>';
+      return '<tr style="'+rowStyle+'"><td>'+esc(r.event_name)+'<br><small style="color:#999;">'+esc(r.admin_org||'')+'</small></td>'
+        +'<td>'+esc(r.reporter_nickname)+'</td><td>'+esc(r.reported_nickname)+'</td>'
+        +'<td>'+esc(r.reason)+'</td>'
+        +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
+        +'<td>'+fmt(r.created_at)+'</td>'
+        +'<td>'+resolveBtn+'</td></tr>';
+    };
+    var rows=(open.concat(resolved)).map(renderRow).join('');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button>'
+      +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;">⚠ '+open.length+' open report(s)</span>':'<span style="color:green;font-size:11px;">✓ No open reports</span>')
+      +'<span class="count">'+d.reports.length+' total</span></div>'
+      +'<table><thead><tr><th>Event / Org</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th><th>Action</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="7" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
   } catch(e){setContent('<div class="empty">Connection error.</div>');}
+}
+
+async function resolveReport(id) {
+  try {
+    var r=await fetch(API+'/api/admin/reports/'+id+'/resolve',{method:'PUT',headers:{'x-admin-key':adminKey}});
+    var d=await r.json();
+    if(d.success) loadReports(); else alert('Error: '+d.error);
+  } catch(e){alert('Connection error.');}
 }
 </script>
 
