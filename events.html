@@ -651,7 +651,9 @@ function buildEventCard(e) {
   var stoppedBy=e.stopped_by?'<span style="font-size:10px;color:#bbb;letter-spacing:1px;">ended by: '+e.stopped_by.replace(/_/g,' ')+'</span>':'';
   var ready=e.reports_contact_confirmed&&e.paid;
   var leftActions='';
-  if (ready) {
+  if (e.status==='finished') {
+    leftActions='';
+  } else if (ready) {
     leftActions+='<button class="btn-action" onclick="loadParticipantList('+e.id+')">Participant List</button>';
   } else {
     leftActions+='<button class="btn-action" style="color:#bbb;border-color:#eee;cursor:default;">Participant List — PENDING</button>';
