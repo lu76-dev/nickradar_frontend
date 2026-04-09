@@ -592,18 +592,9 @@ function fmtCountdown(ms) {
 function buildEasBox(e) {
   var line1, line2, line3;
   if (e.status==='finished') {
-    line1=''; line2='';
-    var finTime=e.stopped_at?new Date(e.stopped_at):new Date(e.ends_at);
-    var tz=e.timezone||'Europe/Vienna';
-    var finStr=finTime.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:tz})+' '+finTime.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit',timeZone:tz});
     var byLabels={'time_expired':'Time Expired','event_admin':'Event Admin','nickradar_admin':'nickradar Admin'};
-    var byStr=e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by)+' · ':'';
-    var durMs=finTime-new Date(e.start_at);
-    var dH=Math.floor(durMs/3600000),dM=Math.floor((durMs%3600000)/60000),dS=Math.floor((durMs%60000)/1000);
-    var durStr=String(dH).padStart(2,'0')+':'+String(dM).padStart(2,'0')+':'+String(dS).padStart(2,'0');
-    line1='<div class="eas-line" style="color:#bbb;">'+(e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by):'—')+'</div>';
-    line2='<div class="eas-line" style="color:#bbb;">'+finStr+'</div>';
-    line3='<div class="eas-line" style="color:#bbb;">Effective Duration: '+durStr+'</div>';
+    line1='<div class="eas-line" style="color:#bbb;">'+(e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by):'Ended')+'</div>';
+    line2=''; line3='';
   } else if (!e.reports_contact_confirmed) {
     line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
     line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
@@ -646,8 +637,9 @@ function buildEventCard(e) {
     var effMs=new Date(e.effective_end_at)-new Date(e.effective_start_at);
     var effH=Math.floor(effMs/3600000);
     var effM=Math.floor((effMs%3600000)/60000);
-    effDurStr=String(effH).padStart(2,'0')+':'+String(effM).padStart(2,'0');
-    effDurLabel='EFFECTIVE DURATION: <strong>'+effDurStr+'</strong>';
+    var effS=Math.floor((effMs%60000)/1000);
+    effDurStr=String(effH).padStart(2,'0')+':'+String(effM).padStart(2,'0')+':'+String(effS).padStart(2,'0');
+    effDurLabel='Effective Duration: <strong>'+effDurStr+'</strong>';
   }
   var stoppedBy=e.stopped_by?'<span style="font-size:10px;color:#bbb;letter-spacing:1px;">ended by: '+e.stopped_by.replace(/_/g,' ')+'</span>':'';
   var ready=e.reports_contact_confirmed&&e.paid;
