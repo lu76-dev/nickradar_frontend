@@ -298,7 +298,7 @@ async function loadEvents() {
       var actions='';
       if (e.status==='active'||e.status==='pending') {
         actions+='<button class="btn-sm-danger" onclick="stopEvent('+e.id+')">Stop</button>';
-        actions+='<button class="btn-sm" onclick="showDuration('+e.id+',\''+e.ends_at+'\')">Duration</button>';
+        actions+='<button class="btn-sm" onclick="showDuration('+e.id+',\''+e.ends_at+'\',\''+e.timezone+'\')">Duration</button>';
       }
       if (!e.reports_contact_confirmed&&e.status==='pending') {
         actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Reports Contact</button>';
