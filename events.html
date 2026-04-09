@@ -529,7 +529,7 @@ async function loadReports() {
         +'<td>'+esc(rep.reason)+'</td>'
         +'<td><span title="'+esc(details)+'" style="cursor:pointer;display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="var s=this.style;s.whiteSpace=s.whiteSpace===\'normal\'?\'nowrap\':\'normal\';s.overflow=s.overflow===\'visible\'?\'hidden\':\'visible\';s.maxWidth=s.maxWidth===\'none\'?\'180px\':\'none\';">'+esc(details)+'</span></td>'
         +'<td>'+time+'</td>'
-        +'<td>'+(!rep.resolved?'<button class="btn-sm-reports" onclick="resolveReport('+rep.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>')+'</td>'
+        +'<td>'+(!rep.resolved?'<button class="btn-sm-reports" onclick="resolveReport('+rep.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>'+(rep.resolved_by?'<br><small style="color:#bbb;">'+esc(rep.resolved_by)+'</small>':'')+(rep.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(rep.resolved_by_ip)+'</small>':''))+'</td>'
         +'</tr>';
     };
     var rows = open.concat(resolved).map(renderRow).join('');

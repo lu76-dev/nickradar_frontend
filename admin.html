@@ -501,7 +501,7 @@ async function loadReports() {
         +'<td>'+esc(r.reason)+'</td>'
         +'<td><span title="'+esc(r.details||'')+'" style="cursor:pointer;display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="var s=this.style;s.whiteSpace=s.whiteSpace===\'normal\'?\'nowrap\':\'normal\';s.overflow=s.overflow===\'visible\'?\'hidden\':\'visible\';s.maxWidth=s.maxWidth===\'none\'?\'180px\':\'none\';">'+esc(r.details||'—')+'</span></td>'
         +'<td>'+fmt(r.created_at)+'</td>'
-        +'<td>'+(!r.resolved?'<button class="btn-action" onclick="resolveReport('+r.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>')+'</td>'
+        +'<td>'+(!r.resolved?'<button class="btn-action" onclick="resolveReport('+r.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>'+(r.resolved_by?'<br><small style="color:#bbb;">'+esc(r.resolved_by)+'</small>':'')+(r.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(r.resolved_by_ip)+'</small>':''))+'</td>'
         +'</tr>';
     };
     var rows=(open.concat(resolved)).map(renderRow).join('');
