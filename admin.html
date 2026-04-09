@@ -248,8 +248,6 @@ async function openEaModal(id) {
     document.getElementById('m-postal-code').value = a.postal_code||'';
     document.getElementById('m-city').value = a.city||'';
     document.getElementById('m-vat').value = a.vat||'';
-    document.getElementById('m-rc-name').value = a.reports_contact_name||'';
-    document.getElementById('m-rc-phone').value = a.reports_contact_phone||'';
     document.getElementById('m-password').value = '';
     document.getElementById('ea-modal').classList.add('active');
   } catch(e) { alert('Connection error.'); }
@@ -276,8 +274,6 @@ async function saveEaData() {
     postal_code: document.getElementById('m-postal-code').value.trim()||null,
     city: document.getElementById('m-city').value.trim()||null,
     vat: document.getElementById('m-vat').value.trim()||null,
-    reports_contact_name: document.getElementById('m-rc-name').value.trim()||null,
-    reports_contact_phone: document.getElementById('m-rc-phone').value.trim()||null
   };
   try {
     var r = await fetch(API+'/api/admin/event-admin/'+currentEaId+'/profile',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify(body)});
@@ -303,22 +299,17 @@ async function loadEvents() {
     var rows=events.map(function(e){
       var pendingInfo='';
       if (e.status==='pending') {
-        if (!e.reports_contact_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ RC</span>';
-        else if (!e.paid) pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ PAY</span>';
+        if (!e.paid) pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ PAY</span>';
         else pendingInfo=' <span style="color:green;font-size:9px;">✓</span>';
       }
-      var rcPending = e.status==='pending' && !e.reports_contact_confirmed;
-      var payPending = e.status==='pending' && e.reports_contact_confirmed && !e.paid;
-      var rcBtn = rcPending
-        ? '<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ R-Contact</button>'
-        : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled>✓ R-Contact</button>';
+      var payPending = e.status==='pending' && !e.paid;
       var payBtn = payPending
         ? '<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>'
         : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled>✓ Payment</button>';
       var evNum='EV-'+String(e.id).padStart(8,'0');
       var actions='<button class="btn-sm" onclick="openEventModal('+e.id+')">Modify Event</button>'
         +'<button class="btn-sm" onclick="loadParticipantList('+e.id+',\"'+esc(e.event_name)+'\")">Participants</button>'
-        +rcBtn+payBtn;
+        +payBtn;
       return '<tr>'
         +'<td>'+evNum+'</td>'
         +'<td>'+actions+'</td>'
@@ -334,14 +325,7 @@ async function loadEvents() {
       +'<tbody>'+(rows||'<tr><td colspan="11" class="empty">No events yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
-async function confirmSecurity(id) {
-  if (!confirm('Confirm reports contact for this event?\n\nThis allows the event to proceed to payment and start.')) return;
-  try {
-    var r=await fetch(API+'/api/admin/events/'+id+'/confirm-reports-contact',{method:'POST',headers:{'x-admin-key':adminKey}});
-    var d=await r.json();
-    if (d.success) loadEvents(); else alert('Error: '+d.error);
-  } catch(e){alert('Connection error.');}
-}
+
 
 async function confirmPayment(id) {
   if (!confirm('Confirm payment for this event?\n\nOnly do this after verifying payment was received.\nThis will allow the event to start at the scheduled time.')) return;
@@ -557,9 +541,6 @@ async function resolveReport(id) {
     <div class="modal-row"><label>City</label><input type="text" id="m-city" /></div>
     <div class="modal-row"><label>VAT / UID</label><input type="text" id="m-vat" /></div>
 
-    <div class="modal-section">Reports Contact</div>
-    <div class="modal-row"><label>Name</label><input type="text" id="m-rc-name" /></div>
-    <div class="modal-row"><label>Phone</label><input type="tel" id="m-rc-phone" /></div>
 
     <div class="modal-section">Change Password</div>
     <div class="modal-row"><label>New Password (min. 8 characters)</label><input type="password" id="m-password" /></div>

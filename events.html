@@ -293,12 +293,7 @@
         <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="24" max="10000" oninput="updatePrice()" />
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
-      <div style="margin-top:16px;padding:14px;background:#f7f7f7;border:1px solid #eee;max-width:440px;">
-        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;">Reports Contact</div>
-        <div class="form-row"><label>Name</label><input type="text" id="new-rc-name" /></div>
-        <div class="form-row"><label>Phone</label><input type="tel" id="new-rc-phone" autocomplete="off" /></div>
-        <div style="font-size:10px;color:#bbb;margin-top:6px;line-height:1.5;">This person must be on-site and reachable during the event. nickradar will verify via SMS.</div>
-      </div>
+
       <div class="form-msg" id="create-msg"></div>
       <div style="background:#f7f7f7;border:1px solid #eee;padding:14px;max-width:440px;margin-bottom:12px;">
         <div style="font-size:10px;color:#666;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;">Please confirm to proceed</div>
@@ -416,7 +411,6 @@ function showTab(name) {
   document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
   var el = document.getElementById('tab-'+name);
   if (el) el.classList.add('active');
-  if (name==='create') prefillRcName();
   if (name==='events') loadEvents();
   if (name==='account') loadAccount();
   if (name==='reports') loadReports();
@@ -428,10 +422,6 @@ function showTab(name) {
 }
 
 async function prefillRcName() {
-  var nameEl = document.getElementById('new-rc-name');
-  if (nameEl && adminData && adminData.contact_name && !nameEl.value) {
-    nameEl.value = adminData.contact_name;
-  }
   await checkBillingStatus();
 }
 
@@ -630,8 +620,6 @@ async function doCreateEvent() {
   var startAt=document.getElementById('new-start-at').value;
   var timezone=document.getElementById('new-timezone').value;
   var count=parseInt(document.getElementById('new-sticker-count').value);
-  var rcName=document.getElementById('new-rc-name').value.trim();
-  var rcPhone=document.getElementById('new-rc-phone').value.trim();
   var confirmTerms=document.getElementById('confirm-terms').checked;
   var confirmPayment=document.getElementById('confirm-payment').checked;
   var msg=document.getElementById('create-msg');
@@ -639,20 +627,17 @@ async function doCreateEvent() {
   if (!eventName) { msg.textContent='Event name required.'; return; }
   if (!startAt) { msg.textContent='Start time required.'; return; }
   if (!count||count<24) { msg.textContent='Minimum 24 stickers.'; return; }
-  if (!rcName) { msg.textContent='Reports Contact name is required.'; return; }
-  if (!rcPhone) { msg.textContent='Reports Contact phone is required.'; return; }
   if (!confirmTerms) { msg.textContent='Please accept the Terms & Conditions and Privacy Policy.'; return; }
   if (!confirmPayment) { msg.textContent='Please confirm the non-refundable payment policy.'; return; }
   var termsAcceptedAt=new Date().toISOString();
   msg.style.color='#666'; msg.textContent='Generating stickers...';
   try {
-    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,reports_contact_name:rcName,reports_contact_phone:rcPhone,terms_accepted_at:termsAcceptedAt,terms_version:'v1.0'}) });
+    var r = await fetch(API+'/api/events', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({event_name:eventName,start_at:startAt,sticker_count:count,timezone:timezone,terms_accepted_at:termsAcceptedAt,terms_version:'v1.0'}) });
     var d = await r.json();
     if (!d.success) { msg.style.color='red'; msg.textContent='Error: '+d.error; return; }
-    msg.style.color='green'; msg.textContent='✓ Event created! Awaiting reports contact confirmation and payment.';
+    msg.style.color='green'; msg.textContent='✓ Event created! Awaiting payment confirmation.';
     ['new-event-name','new-start-at','new-sticker-count'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('price-hint').textContent='Enter quantity to see price.';
-    document.getElementById('new-rc-phone').value='';
     document.getElementById('confirm-terms').checked=false;
     document.getElementById('confirm-payment').checked=false;
     showTab('events');
@@ -672,7 +657,7 @@ async function loadEvents() {
     var html='';
     active.forEach(function(e){html+=buildEventCard(e);});
     el.innerHTML=html||'<div class="empty">No active events.</div>';
-    var timerEvents=d.events.filter(function(e){return e.status==='active'||(e.status==='pending'&&e.reports_contact_confirmed&&e.paid);});
+    var timerEvents=d.events.filter(function(e){return e.status==='active'||(e.status==='pending'&&e.paid);});
     startCountdowns(timerEvents);
     var histWrap=document.getElementById('events-history-wrap');
     var histEl=document.getElementById('events-history');
@@ -708,22 +693,19 @@ function buildEasBox(e) {
     var byLabels={'time_expired':'Time Expired','event_admin':'Event Admin','nickradar_admin':'nickradar Admin'};
     line1='<div class="eas-line" style="color:#bbb;">'+(e.stopped_by?'Ended by: '+(byLabels[e.stopped_by]||e.stopped_by):'Ended')+'</div>';
     line2=''; line3='';
-  } else if (!e.reports_contact_confirmed) {
-    line1='<div class="eas-line" style="color:#cc6600;">⏳ Reports Contact</div>';
-    line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
-    line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
   } else if (!e.paid) {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
-    line2='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
-    line3='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
+  } else if (!e.paid) {
+    line1='<div class="eas-line" style="color:#cc6600;">⏳ Payment Verification</div>';
+    line2='<div class="eas-line" style="color:#cc6600;">⏳ Event Start</div>';
+    line3='';
   } else if (e.status==='pending') {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
-    line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
-    line3='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#cc6600;">...</div>';
+    line1='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
+    line2='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#cc6600;">...</div>';
+    line3='';
   } else {
-    line1='<div class="eas-line" style="color:#00aa2a;">✓ Reports Contact</div>';
-    line2='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
-    line3='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#00aa2a;">...</div>';
+    line1='<div class="eas-line" style="color:#00aa2a;">✓ Payment Verification</div>';
+    line2='<div class="eas-line" id="eas-timer-'+e.id+'" style="color:#00aa2a;">...</div>';
+    line3='';
   }
   var liveBadge=(e.status==='active')?'<div style="font-size:10px;font-weight:bold;letter-spacing:3px;color:#000;background:#00ff41;padding:2px 8px;margin-bottom:6px;display:inline-block;">● LIVE</div>':'';
   return '<div class="eas-box">'+liveBadge+line1+line2+line3+'</div>';
@@ -734,7 +716,7 @@ function buildEventCard(e) {
   if (e.status==='active') { sLabel='ACTIVE'; }
   else if (e.status==='finished') { sLabel='FINISHED'; }
   else if (e.status==='pending') {
-    if (!e.reports_contact_confirmed||!e.paid) { sLabel='PENDING — Reports Contact & Payment required'; }
+    if (!e.paid) { sLabel='PENDING — Payment required'; }
     else { sLabel='READY'; }
   } else { sLabel=e.status.toUpperCase(); }
   var tz=e.timezone||'Europe/Vienna';
@@ -762,7 +744,7 @@ function buildEventCard(e) {
     effDurLabel='&nbsp;&nbsp;&nbsp;Effective Duration: <strong>'+effDurStr+'</strong>';
   }
   var stoppedBy=e.stopped_by?'<span style="font-size:10px;color:#bbb;letter-spacing:1px;">ended by: '+e.stopped_by.replace(/_/g,' ')+'</span>':'';
-  var ready=e.reports_contact_confirmed&&e.paid;
+  var ready=e.paid;
   var leftActions='';
   if (e.status==='finished') {
     leftActions='';
@@ -781,9 +763,7 @@ function buildEventCard(e) {
   }
   var rightActions='';
   if (e.status==='active') { rightActions='<button class="btn-action btn-action-stop" onclick="doStopEvent('+e.id+')">⚠ STOP EVENT</button>'; }
-  var contactInfo=e.reports_contact_name
-    ?'<span>Reports Contact: <strong>'+e.reports_contact_name+'</strong> '+e.reports_contact_phone+(e.reports_contact_confirmed?' <span style="color:green;font-size:9px;">✓</span>':' <span style="color:#cc6600;font-size:9px;">⏳</span>')+'</span>'
-    :'';
+  var contactInfo='';
   return '<div class="event-card">'
     +'<div class="event-card-head">'
     +'<div class="event-card-name">'+e.event_name+'</div>'
