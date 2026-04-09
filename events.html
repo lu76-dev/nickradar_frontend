@@ -520,24 +520,30 @@ async function loadReports() {
     var resolved = allReports.filter(function(r){ return r.resolved; });
     var renderRow = function(rep) {
       var rowStyle = rep.resolved ? 'opacity:0.5;' : '';
-      var time = new Date(rep.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-      var details = rep.details||'—';
+      var tz = rep.event_timezone || 'Europe/Vienna';
+      var timeStr = new Date(rep.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz})+' ('+tz+')';
       return '<tr style="'+rowStyle+'">'
+        +'<td style="font-size:10px;color:#999;">#'+rep.id+'</td>'
         +'<td>'+esc(rep._event_name)+'</td>'
         +'<td>'+esc(rep.reporter_nickname)+'</td>'
         +'<td>'+esc(rep.reported_nickname)+'</td>'
         +'<td>'+esc(rep.reason)+'</td>'
-        +'<td><span title="'+esc(details)+'" style="cursor:pointer;display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="var s=this.style;s.whiteSpace=s.whiteSpace===\'normal\'?\'nowrap\':\'normal\';s.overflow=s.overflow===\'visible\'?\'hidden\':\'visible\';s.maxWidth=s.maxWidth===\'none\'?\'180px\':\'none\';">'+esc(details)+'</span></td>'
-        +'<td>'+time+'</td>'
-        +'<td>'+(!rep.resolved?'<button class="btn-sm-reports" onclick="resolveReport('+rep.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>'+(rep.resolved_by?'<br><small style="color:#bbb;">'+esc(rep.resolved_by)+'</small>':'')+(rep.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(rep.resolved_by_ip)+'</small>':''))+'</td>'
+        +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(rep.details||'')+'">'+esc(rep.details||'—')+'</td>'
+        +'<td style="white-space:nowrap;">'+timeStr+'</td>'
+        +'<td>'+(!rep.resolved
+          ?'<button class="btn-sm-reports" onclick="resolveReport('+rep.id+')">✓ Resolve</button>'
+          :'<span style="font-size:10px;color:#999;">✓ Resolved</span>'
+            +(rep.resolved_by?'<br><small style="color:#bbb;">'+esc(rep.resolved_by)+'</small>':'')
+            +(rep.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(rep.resolved_by_ip)+'</small>':''))
+        +'</td>'
         +'</tr>';
     };
     var rows = open.concat(resolved).map(renderRow).join('');
     var html = '<div class="reports-toolbar"><button class="btn-sm-reports" onclick="loadReports()">↻ Refresh</button>'
       +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;margin-left:8px;">⚠ '+open.length+' open</span>':'<span style="color:green;font-size:11px;margin-left:8px;">✓ No open reports</span>')
       +'<span class="reports-count">'+allReports.length+' total</span></div>'
-      +'<table class="reports-table"><thead><tr><th>Event</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th><th>Action</th></tr></thead>'
-      +'<tbody>'+(rows||'<tr><td colspan="7" style="text-align:center;color:#ccc;padding:40px;">No reports yet.</td></tr>')+'</tbody></table>';
+      +'<table class="reports-table"><thead><tr><th>#</th><th>Event</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date (Event TZ)</th><th>Action</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="8" style="text-align:center;color:#ccc;padding:40px;">No reports yet.</td></tr>')+'</tbody></table>';
     el.innerHTML = html;
     updateReportsTabBadge(open.length);
   } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }

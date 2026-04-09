@@ -495,21 +495,30 @@ async function loadReports() {
     var resolved=d.reports.filter(function(r){return r.resolved;});
     var renderRow=function(r){
       var rowStyle=r.resolved?'opacity:0.5;':'';
+      var tz=r.event_timezone||'Europe/Vienna';
+      var timeStr=new Date(r.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz})+' ('+tz+')';
       return '<tr style="'+rowStyle+'">'
+        +'<td style="font-size:10px;color:#999;">#'+r.id+'</td>'
         +'<td>'+esc(r.event_name)+'<br><small style="color:#999;">'+esc(r.admin_org||'')+'</small></td>'
-        +'<td>'+esc(r.reporter_nickname)+'</td><td>'+esc(r.reported_nickname)+'</td>'
+        +'<td>'+esc(r.reporter_nickname)+'</td>'
+        +'<td>'+esc(r.reported_nickname)+'</td>'
         +'<td>'+esc(r.reason)+'</td>'
-        +'<td><span title="'+esc(r.details||'')+'" style="cursor:pointer;display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="var s=this.style;s.whiteSpace=s.whiteSpace===\'normal\'?\'nowrap\':\'normal\';s.overflow=s.overflow===\'visible\'?\'hidden\':\'visible\';s.maxWidth=s.maxWidth===\'none\'?\'180px\':\'none\';">'+esc(r.details||'—')+'</span></td>'
-        +'<td>'+fmt(r.created_at)+'</td>'
-        +'<td>'+(!r.resolved?'<button class="btn-action" onclick="resolveReport('+r.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>'+(r.resolved_by?'<br><small style="color:#bbb;">'+esc(r.resolved_by)+'</small>':'')+(r.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(r.resolved_by_ip)+'</small>':''))+'</td>'
+        +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
+        +'<td style="white-space:nowrap;">'+timeStr+'</td>'
+        +'<td>'+(!r.resolved
+          ?'<button class="btn-action" onclick="resolveReport('+r.id+')">✓ Resolve</button>'
+          :'<span style="font-size:10px;color:#999;">✓ Resolved</span>'
+            +(r.resolved_by?'<br><small style="color:#bbb;">'+esc(r.resolved_by)+'</small>':'')
+            +(r.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(r.resolved_by_ip)+'</small>':''))
+        +'</td>'
         +'</tr>';
     };
     var rows=(open.concat(resolved)).map(renderRow).join('');
     setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button>'
       +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;margin-left:8px;">⚠ '+open.length+' open</span>':'<span style="color:green;font-size:11px;margin-left:8px;">✓ No open reports</span>')
       +'<span class="count">'+d.reports.length+' total</span></div>'
-      +'<table><thead><tr><th>Event / Org</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th><th>Action</th></tr></thead>'
-      +'<tbody>'+(rows||'<tr><td colspan="7" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
+      +'<table><thead><tr><th>#</th><th>Event / Org</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date (Event TZ)</th><th>Action</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="8" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
     updateAdminReportsBadge(open.length);
   } catch(e){setContent('<div class="empty">Connection error.</div>');}
 }
