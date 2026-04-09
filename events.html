@@ -356,6 +356,7 @@ window.onload = function() {
 
 async function doVerifyEmail(t) {
   showScreen('verify');
+  history.replaceState(null, '', window.location.pathname);
   try {
     var r = await fetch(API+'/api/event-admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:t}) });
     var d = await r.json();
