@@ -413,6 +413,10 @@ function showTab(name) {
   if (name==='account') loadAccount();
   if (name==='reports') loadReports();
   if (name==='invoices') loadInvoices();
+  var btn = document.getElementById('tab-btn-reports');
+  if (btn && btn.getAttribute('data-reports-open')) {
+    updateReportsTabBadge(parseInt(btn.getAttribute('data-reports-open')));
+  }
 }
 
 async function prefillRcName() {
@@ -472,18 +476,27 @@ async function checkReportsBadge() {
       var rd = await rr.json();
       if (rd.success) openCount += rd.reports.filter(function(r){ return !r.resolved; }).length;
     }
-    var btn = document.getElementById('tab-btn-reports');
-    if (!btn) return;
-    if (openCount > 0) {
-      btn.textContent = 'Reports (' + openCount + ')';
-      btn.style.color = '#cc0000';
-      btn.style.fontWeight = 'bold';
-    } else {
-      btn.textContent = 'Reports';
-      btn.style.color = '';
-      btn.style.fontWeight = '';
-    }
+    updateReportsTabBadge(openCount);
   } catch(e) {}
+}
+
+function updateReportsTabBadge(openCount) {
+  var btn = document.getElementById('tab-btn-reports');
+  if (!btn) return;
+  if (openCount > 0) {
+    btn.setAttribute('data-reports-open', openCount);
+    btn.textContent = 'Reports (' + openCount + ')';
+    btn.style.setProperty('color', '#cc0000', 'important');
+    btn.style.fontWeight = 'bold';
+    btn.style.background = btn.classList.contains('active') ? '#cc0000' : '';
+    btn.style.setProperty('color', btn.classList.contains('active') ? '#fff' : '#cc0000', 'important');
+  } else {
+    btn.removeAttribute('data-reports-open');
+    btn.textContent = 'Reports';
+    btn.style.color = '';
+    btn.style.fontWeight = '';
+    btn.style.background = '';
+  }
 }
 
 async function loadReports() {
@@ -503,21 +516,30 @@ async function loadReports() {
     }
     if (allReports.length === 0) { el.innerHTML='<div class="empty">No reports yet.</div>'; return; }
     var html = '<div class="section-title">Reports — Active Events</div>';
-    allReports.forEach(function(rep) {
+    var open = allReports.filter(function(r){ return !r.resolved; });
+    var resolved = allReports.filter(function(r){ return r.resolved; });
+    var renderRow = function(rep) {
       var isOpen = !rep.resolved;
-      var rowStyle = isOpen ? 'border:1px solid #ffcccc;background:#fff5f5;margin-bottom:8px;padding:12px 14px;' : 'border:1px solid #eee;background:#fafafa;margin-bottom:8px;padding:12px 14px;opacity:0.6;';
+      var rowStyle = isOpen ? 'opacity:1;' : 'opacity:0.5;';
       var time = new Date(rep.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-      html += '<div style="'+rowStyle+'">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
-        + '<span style="font-size:10px;color:#999;letter-spacing:1px;">'+esc(rep._event_name)+'  ·  '+time+'</span>'
-        + (isOpen ? '<button class="btn-outline" onclick="resolveReport('+rep.id+')">✓ Mark as Resolved</button>' : '<span style="font-size:10px;color:#999;">✓ Resolved</span>')
-        + '</div>'
-        + '<div style="font-size:12px;margin-bottom:4px;"><strong>'+esc(rep.reporter_nickname)+'</strong> <span style="color:#999;">reported</span> <strong>'+esc(rep.reported_nickname)+'</strong></div>'
-        + '<div style="font-size:11px;color:#666;">Reason: '+esc(rep.reason)+'</div>'
-        + (rep.details ? '<div style="font-size:11px;color:#999;margin-top:2px;">'+esc(rep.details)+'</div>' : '')
-        + '</div>';
-    });
+      return '<tr style="'+rowStyle+'">'
+        +'<td>'+esc(rep._event_name)+'</td>'
+        +'<td>'+esc(rep.reporter_nickname)+'</td>'
+        +'<td>'+esc(rep.reported_nickname)+'</td>'
+        +'<td>'+esc(rep.reason)+'</td>'
+        +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(rep.details||'')+'">'+esc(rep.details||'—')+'</td>'
+        +'<td>'+time+'</td>'
+        +'<td>'+(isOpen?'<button class="btn-action" onclick="resolveReport('+rep.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>')+'</td>'
+        +'</tr>';
+    };
+    var rows = open.concat(resolved).map(renderRow).join('');
+    html += '<div class="toolbar"><button class="btn-outline" onclick="loadReports()">↻ Refresh</button>'
+      +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;margin-left:8px;">⚠ '+open.length+' open</span>':'<span style="color:green;font-size:11px;margin-left:8px;">✓ No open reports</span>')
+      +'</div>'
+      +'<table><thead><tr><th>Event</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th><th>Action</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table>';
     el.innerHTML = html;
+    updateReportsTabBadge(open.length);
   } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
 }
 

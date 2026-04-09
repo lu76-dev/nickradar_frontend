@@ -110,7 +110,7 @@
     <button class="tab active" onclick="showTab('event-admins')">Event Admins</button>
     <button class="tab" onclick="showTab('events')">Events</button>
     <button class="tab" onclick="showTab('invoices')">Invoices</button>
-    <button class="tab" onclick="showTab('reports')">Reports</button>
+    <button class="tab" id="tab-btn-reports" onclick="showTab('reports')">Reports</button>
   </div>
   <div class="content" id="tab-content"><div class="loading">Loading...</div></div>
 </div>
@@ -130,7 +130,7 @@ async function verifyAndShow() {
 }
 
 function showLogin() { document.getElementById('screen-login').style.display='flex'; document.getElementById('screen-admin').style.display='none'; }
-function showAdmin() { document.getElementById('screen-login').style.display='none'; document.getElementById('screen-admin').style.display='block'; loadEventAdmins(); }
+function showAdmin() { document.getElementById('screen-login').style.display='none'; document.getElementById('screen-admin').style.display='block'; loadEventAdmins(); startAdminReportPolling(); }
 
 async function doLogin() {
   var key=document.getElementById('admin-key').value.trim();
@@ -155,11 +155,54 @@ function showTab(name) {
   else if (name==='events') loadEvents();
   else if (name==='invoices') loadInvoices();
   else if (name==='reports') loadReports();
+  var rbtn = document.getElementById('tab-btn-reports');
+  if (rbtn && rbtn.getAttribute('data-reports-open')) { updateAdminReportsBadge(parseInt(rbtn.getAttribute('data-reports-open'))); }
 }
 
 function setContent(html) { document.getElementById('tab-content').innerHTML=html; }
 function fmt(s) { if(!s) return '—'; var d=new Date(s); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+var _adminReportPoll = null;
+
+function startAdminReportPolling() {
+  if (_adminReportPoll) clearInterval(_adminReportPoll);
+  checkAdminReportsBadge();
+  _adminReportPoll = setInterval(checkAdminReportsBadge, 30000);
+}
+
+async function checkAdminReportsBadge() {
+  try {
+    var r = await fetch(API+'/api/admin/reports', {headers:{'x-admin-key':adminKey}});
+    var d = await r.json();
+    if (!d.success) return;
+    var openCount = d.reports.filter(function(r){ return !r.resolved; }).length;
+    updateAdminReportsBadge(openCount);
+  } catch(e) {}
+}
+
+function updateAdminReportsBadge(openCount) {
+  var btn = document.getElementById('tab-btn-reports');
+  if (!btn) return;
+  if (openCount > 0) {
+    btn.setAttribute('data-reports-open', openCount);
+    btn.textContent = 'Reports (' + openCount + ')';
+    btn.style.fontWeight = 'bold';
+    if (btn.classList.contains('active')) {
+      btn.style.background = '#cc0000';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '#cc0000';
+    }
+  } else {
+    btn.removeAttribute('data-reports-open');
+    btn.textContent = 'Reports';
+    btn.style.fontWeight = '';
+    btn.style.background = '';
+    btn.style.color = '';
+  }
+}
 
 async function loadEventAdmins() {
   setContent('<div class="loading">Loading...</div>');
@@ -468,20 +511,22 @@ async function loadReports() {
     var resolved=d.reports.filter(function(r){return r.resolved;});
     var renderRow=function(r){
       var rowStyle=r.resolved?'opacity:0.5;':'';
-      var resolveBtn=!r.resolved?'<button class="btn-sm-orange" onclick="resolveReport('+r.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>';
-      return '<tr style="'+rowStyle+'"><td>'+esc(r.event_name)+'<br><small style="color:#999;">'+esc(r.admin_org||'')+'</small></td>'
+      return '<tr style="'+rowStyle+'">'
+        +'<td>'+esc(r.event_name)+'<br><small style="color:#999;">'+esc(r.admin_org||'')+'</small></td>'
         +'<td>'+esc(r.reporter_nickname)+'</td><td>'+esc(r.reported_nickname)+'</td>'
         +'<td>'+esc(r.reason)+'</td>'
         +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
         +'<td>'+fmt(r.created_at)+'</td>'
-        +'<td>'+resolveBtn+'</td></tr>';
+        +'<td>'+(!r.resolved?'<button class="btn-action" onclick="resolveReport('+r.id+')">✓ Resolve</button>':'<span style="font-size:10px;color:#999;">✓ Resolved</span>')+'</td>'
+        +'</tr>';
     };
     var rows=(open.concat(resolved)).map(renderRow).join('');
     setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button>'
-      +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;">⚠ '+open.length+' open report(s)</span>':'<span style="color:green;font-size:11px;">✓ No open reports</span>')
+      +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;margin-left:8px;">⚠ '+open.length+' open</span>':'<span style="color:green;font-size:11px;margin-left:8px;">✓ No open reports</span>')
       +'<span class="count">'+d.reports.length+' total</span></div>'
       +'<table><thead><tr><th>Event / Org</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date</th><th>Action</th></tr></thead>'
       +'<tbody>'+(rows||'<tr><td colspan="7" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
+    updateAdminReportsBadge(open.length);
   } catch(e){setContent('<div class="empty">Connection error.</div>');}
 }
 
@@ -489,7 +534,7 @@ async function resolveReport(id) {
   try {
     var r=await fetch(API+'/api/admin/reports/'+id+'/resolve',{method:'PUT',headers:{'x-admin-key':adminKey}});
     var d=await r.json();
-    if(d.success) loadReports(); else alert('Error: '+d.error);
+    if(d.success) { loadReports(); checkAdminReportsBadge(); } else alert('Error: '+d.error);
   } catch(e){alert('Connection error.');}
 }
 </script>
