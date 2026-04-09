@@ -429,8 +429,8 @@ async function checkBillingStatus() {
     var hasBilling = !!(a.street && a.street_number && a.postal_code && a.city);
     if (!hasBilling) {
       alert.style.display = 'block';
-      alert.innerHTML = '&#9888; Please complete your billing information before creating an event. '
-        + '<strong style="cursor:pointer;text-decoration:underline;color:#cc0000;" onclick="showTab('account')">Go to My Account</strong>';
+      alert.innerHTML = "&#9888; Please complete your billing information before creating an event. "
+        + "<strong style='cursor:pointer;text-decoration:underline;color:#cc0000;' onclick='showTab("account")'>Go to My Account</strong>";
       wrap.style.opacity = '0.4';
       wrap.style.pointerEvents = 'none';
     } else {
