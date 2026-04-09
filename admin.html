@@ -78,6 +78,11 @@
     .modal-row input:focus { border-color:#000; }
     .modal-actions { display:flex; gap:8px; margin-top:20px; padding-top:16px; border-top:1px solid #eee; }
     .modal-msg { font-size:11px; margin-top:8px; }
+    .ev-modal-tz { font-size:10px; color:#999; letter-spacing:1px; margin-bottom:12px; }
+    .ev-modal-field label { font-size:10px; letter-spacing:2px; color:#666; display:block; margin-bottom:4px; text-transform:uppercase; }
+    .ev-modal-field input { border:1px solid #ccc; padding:8px 10px; font-size:13px; width:100%; outline:none; font-family:inherit; margin-bottom:12px; }
+    .ev-modal-field input:focus { border-color:#000; }
+    .ev-modal-actions { display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid #eee; flex-wrap:wrap; }
   </style>
 </head>
 <body>
@@ -252,81 +257,40 @@ async function loadEvents() {
     var d=await r.json();
     if (!d.success) { setContent('<div class="empty">Error.</div>'); return; }
     var events=d.events;
-    var needsSecurity=events.filter(function(e){return e.status==='pending'&&!e.reports_contact_confirmed;});
-    var needsPayment=events.filter(function(e){return e.status==='pending'&&e.reports_contact_confirmed&&!e.paid;});
-    var alertHtml='';
-    if (needsSecurity.length>0) {
-      alertHtml+='<div class="alert-box alert-box-security"><strong>⏳ '+needsSecurity.length+' event(s) awaiting reports contact confirmation:</strong><br><br>'
-        +needsSecurity.map(function(e){
-          return '<strong>'+esc(e.event_name)+'</strong> · '+esc(e.admin_org)
-            +' · '+(e.security_name?esc(e.security_name)+' ('+esc(e.security_phone)+')':'no reports contact')
-            +' &nbsp;<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Confirm Reports Contact</button>';
-        }).join('<br>')
-        +'</div>';
-    }
-    if (needsPayment.length>0) {
-      alertHtml+='<div class="alert-box alert-box-payment"><strong>⏳ '+needsPayment.length+' event(s) awaiting payment confirmation:</strong><br><br>'
-        +needsPayment.map(function(e){
-          return '<strong>'+esc(e.event_name)+'</strong> · '+esc(e.admin_org)
-            +' · '+esc(e.admin_email)
-            +' &nbsp;<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Confirm Payment</button>';
-        }).join('<br>')
-        +'</div>';
-    }
     var rows=events.map(function(e){
       var pendingInfo='';
       if (e.status==='pending') {
-        if (!e.reports_contact_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ reports contact</span>';
-        else if (!e.paid)          pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ payment</span>';
-        else                       pendingInfo=' <span style="color:green;font-size:9px;">✓ ready</span>';
+        if (!e.reports_contact_confirmed) pendingInfo=' <span style="color:#cc6600;font-size:9px;">⏳ RC</span>';
+        else if (!e.paid) pendingInfo=' <span style="color:#0055cc;font-size:9px;">⏳ PAY</span>';
+        else pendingInfo=' <span style="color:green;font-size:9px;">✓</span>';
       }
-      var rcName = e.reports_contact_name || e.security_name || '';
-      var rcPhone = e.reports_contact_phone || e.security_phone || '';
-      var rcLink = e.rc_confirm_token
-        ? 'https://app.nickradar.com/api/events/confirm-rc?token=' + e.rc_confirm_token
-        : '';
-      var rcLinkBtn = (!e.reports_contact_confirmed && rcLink)
-        ? ' <button class="btn-sm" onclick="copyRcLink(\'' + rcLink + '\')" title="Copy SMS link">&#128203; Copy SMS Link</button>'
-        : '';
-      var secInfo=rcName
-        ?esc(rcName)+'<br><span style="font-size:10px;color:#999;">'+esc(rcPhone)+'</span>'
-          +(e.reports_contact_confirmed?' <span style="color:green;">✓</span>':' <span style="color:#cc6600;">⏳</span>')
-          +rcLinkBtn
-        :'—';
-      var actions='';
-      if (e.status==='active'||e.status==='pending') {
-        actions+='<button class="btn-sm-danger" onclick="stopEvent('+e.id+')">Stop</button>';
-        actions+='<button class="btn-sm" onclick="showEffectiveTimes('+e.id+',\''+e.timezone+'\',\''+e.effective_start_at+'\',\''+e.effective_end_at+'\')">' + 'Edit Times</button>';
-      }
-      if (!e.reports_contact_confirmed&&e.status==='pending') {
-        actions+='<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ Reports Contact</button>';
-      }
-      if (e.reports_contact_confirmed&&!e.paid&&e.status==='pending') {
-        actions+='<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>';
-      }
-      actions+='<button class="btn-sm" onclick="loadParticipantList('+e.id+',\''+esc(e.event_name)+'\')">Participants</button>';
+      var rcPending = e.status==='pending' && !e.reports_contact_confirmed;
+      var payPending = e.status==='pending' && e.reports_contact_confirmed && !e.paid;
+      var rcBtn = rcPending
+        ? '<button class="btn-sm-orange" onclick="confirmSecurity('+e.id+')">✓ R-Contact</button>'
+        : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled>✓ R-Contact</button>';
+      var payBtn = payPending
+        ? '<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>'
+        : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled>✓ Payment</button>';
       var evNum='EV-'+String(e.id).padStart(8,'0');
-      return '<tr><td>'+evNum+'</td><td><strong>'+esc(e.event_name)+'</strong></td><td>'+esc(e.admin_org)+'</td><td>'+esc(e.admin_email)+'</td>'
+      var actions='<button class="btn-sm" onclick="openEventModal('+e.id+')">Modify Event</button>'
+        +'<button class="btn-sm" onclick="loadParticipantList('+e.id+',\"'+esc(e.event_name)+'\")">Participants</button>'
+        +rcBtn+payBtn;
+      return '<tr>'
+        +'<td>'+evNum+'</td>'
+        +'<td>'+actions+'</td>'
+        +'<td><strong>'+esc(e.event_name)+'</strong></td>'
+        +'<td>'+esc(e.admin_org)+'</td><td>'+esc(e.admin_email)+'</td>'
         +'<td><span class="status-'+e.status+'">'+e.status.toUpperCase()+'</span>'+pendingInfo+'</td>'
         +'<td>'+fmt(e.start_at)+'</td><td>'+fmt(e.ends_at)+'</td>'
         +'<td>'+e.sticker_count+'</td><td>'+e.activated_count+'</td><td>'+e.connection_count+'</td>'
-        +'<td>'+secInfo+'</td><td>'+actions+'</td></tr>';
+        +'</tr>';
     }).join('');
-    setContent(alertHtml
-      +'<div class="toolbar"><button class="btn-sm" onclick="loadEvents()">↻ Refresh</button><span class="count">'+events.length+' events</span></div>'
-      +'<table><thead><tr><th>Eventnr.</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th><th>Reports Contact</th><th>Actions</th></tr></thead>'
-      +'<tbody>'+(rows||'<tr><td colspan="12" class="empty">No events yet.</td></tr>')+'</tbody></table>');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadEvents()">↻ Refresh</button><span class="count">'+events.length+' events</span></div>'
+      +'<table><thead><tr><th>Eventnr.</th><th>Actions</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start</th><th>Ends</th><th>Stickers</th><th>Activated</th><th>Connections</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="11" class="empty">No events yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
-
-function copyRcLink(link) {
-  navigator.clipboard.writeText(link).then(function() {
-    alert('SMS link copied!\n\nSend this to the Reports Contact:\n\n' + link);
-  }).catch(function() {
-    prompt('Copy this link and send via SMS:', link);
-  });
-}
-
 async function confirmSecurity(id) {
   if (!confirm('Confirm reports contact for this event?\n\nThis allows the event to proceed to payment and start.')) return;
   try {
@@ -379,28 +343,65 @@ function utcToLocal(utcDateStr, tz) {
     +String(localD.getUTCMinutes()).padStart(2,'0');
 }
 
-async function showEffectiveTimes(id, timezone, effStart, effEnd) {
-  var tz = timezone || 'Europe/Vienna';
-  var startLocal = utcToLocal(effStart, tz);
-  var endLocal = utcToLocal(effEnd, tz);
-  var inputStart = prompt('Edit Effective Times (' + tz + ')\n\nEffective Start (YYYY-MM-DDTHH:MM):\nCurrent: ' + (startLocal||'not set'), startLocal||'');
-  if (inputStart === null) return;
-  var inputEnd = prompt('Effective End (YYYY-MM-DDTHH:MM):\nCurrent: ' + (endLocal||'not set'), endLocal||'');
-  if (inputEnd === null) return;
-  var body = {};
-  if (inputStart && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(inputStart)) {
-    body.effective_start_at = localToUTC(inputStart, tz).toISOString();
-  }
-  if (inputEnd && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(inputEnd)) {
-    body.effective_end_at = localToUTC(inputEnd, tz).toISOString();
-  }
-  if (!body.effective_start_at && !body.effective_end_at) { alert('No valid input.'); return; }
+var currentEventData = null;
+
+async function openEventModal(id) {
   try {
-    var r = await fetch(API+'/api/admin/events/'+id+'/effective-times', {method:'PUT', headers:{'Content-Type':'application/json','x-admin-key':adminKey}, body:JSON.stringify(body)});
+    var r = await fetch(API+'/api/admin/events', {headers:{'x-admin-key':adminKey}});
     var d = await r.json();
-    if (d.success) loadEvents(); else alert('Error: '+d.error);
-  } catch(e) { alert('Connection error.'); }
+    if (!d.success) { alert('Error loading events.'); return; }
+    var e = d.events.find(function(x){ return x.id===id; });
+    if (!e) { alert('Event not found.'); return; }
+    currentEventData = e;
+    var tz = e.timezone || 'Europe/Vienna';
+    document.getElementById('ev-modal-title').textContent = 'EV-'+String(e.id).padStart(8,'0')+' · '+e.event_name;
+    document.getElementById('ev-modal-tz').textContent = 'Timezone: '+tz;
+    document.getElementById('ev-eff-start').value = utcToLocal(e.effective_start_at, tz)||utcToLocal(e.start_at, tz);
+    document.getElementById('ev-eff-end').value = utcToLocal(e.effective_end_at, tz)||utcToLocal(e.ends_at, tz);
+    document.getElementById('ev-modal-msg').textContent = '';
+    var stopBtn = document.getElementById('ev-stop-btn');
+    stopBtn.style.display = (e.status==='active'||e.status==='pending') ? 'inline-block' : 'none';
+    document.getElementById('ev-modal').classList.add('active');
+  } catch(err) { alert('Connection error.'); }
 }
+
+function closeEventModal() {
+  document.getElementById('ev-modal').classList.remove('active');
+  currentEventData = null;
+}
+
+async function saveEffectiveTimes() {
+  var msg = document.getElementById('ev-modal-msg');
+  msg.style.color='red'; msg.textContent='';
+  var e = currentEventData;
+  if (!e) return;
+  var tz = e.timezone || 'Europe/Vienna';
+  var startVal = document.getElementById('ev-eff-start').value;
+  var endVal = document.getElementById('ev-eff-end').value;
+  var body = {};
+  if (startVal && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(startVal)) body.effective_start_at = localToUTC(startVal, tz).toISOString();
+  if (endVal && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(endVal)) body.effective_end_at = localToUTC(endVal, tz).toISOString();
+  if (!body.effective_start_at && !body.effective_end_at) { msg.textContent='Invalid format. Use YYYY-MM-DDTHH:MM'; return; }
+  try {
+    var r = await fetch(API+'/api/admin/events/'+e.id+'/effective-times', {method:'PUT', headers:{'Content-Type':'application/json','x-admin-key':adminKey}, body:JSON.stringify(body)});
+    var d = await r.json();
+    if (d.success) { msg.style.color='green'; msg.textContent='✓ Saved.'; setTimeout(function(){ closeEventModal(); loadEvents(); }, 600); }
+    else msg.textContent='Error: '+d.error;
+  } catch(err) { msg.textContent='Connection error.'; }
+}
+
+async function stopEventFromModal() {
+  var e = currentEventData;
+  if (!e) return;
+  if (!confirm('Stop event "'+e.event_name+'" permanently?\n\nAll participant data will be deleted.\nThis cannot be undone.')) return;
+  try {
+    var r = await fetch(API+'/api/admin/events/'+e.id+'/stop', {method:'POST', headers:{'x-admin-key':adminKey}});
+    var d = await r.json();
+    if (d.success) { closeEventModal(); loadEvents(); }
+    else alert('Error: '+d.error);
+  } catch(err) { alert('Connection error.'); }
+}
+
 
 async function loadParticipantList(eventId, eventName) {
   setContent('<div class="loading">Loading...</div>');
@@ -501,6 +502,27 @@ async function loadReports() {
     <div class="modal-actions">
       <button class="btn-sm-green" onclick="saveEaData()">Save</button>
       <button class="btn-sm" onclick="closeEaModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ev-modal">
+  <div class="modal-box" style="width:420px;">
+    <div class="modal-title" id="ev-modal-title"></div>
+    <div class="ev-modal-tz" id="ev-modal-tz"></div>
+    <div class="ev-modal-field">
+      <label>Effective Start</label>
+      <input type="datetime-local" id="ev-eff-start" />
+    </div>
+    <div class="ev-modal-field">
+      <label>Effective End</label>
+      <input type="datetime-local" id="ev-eff-end" />
+    </div>
+    <div class="modal-msg" id="ev-modal-msg"></div>
+    <div class="ev-modal-actions">
+      <button class="btn-sm-green" onclick="saveEffectiveTimes()">Save Times</button>
+      <button class="btn-sm-danger" id="ev-stop-btn" onclick="stopEventFromModal()">Stop Event</button>
+      <button class="btn-sm" onclick="closeEventModal()">Cancel</button>
     </div>
   </div>
 </div>
