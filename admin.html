@@ -352,11 +352,23 @@ async function stopEvent(id) {
   try { var r=await fetch(API+'/api/admin/events/'+id+'/stop',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEvents(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
 }
 
-async function showDuration(id, currentEndsAt) {
-  var current=new Date(currentEndsAt).toISOString().slice(0,16);
-  var input=prompt('Set new end time (UTC):\n\nCurrent: '+current, current);
-  if(input===null) return;
-  try { var r=await fetch(API+'/api/admin/events/'+id+'/duration',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({ends_at:new Date(input).toISOString()})}); var d=await r.json(); if(d.success) loadEvents(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+async function showDuration(id, currentEndsAt, timezone) {
+  var tz = timezone || 'Europe/Vienna';
+  var currentLocal = new Date(currentEndsAt).toLocaleString('sv-SE', {timeZone: tz, hour:'2-digit', minute:'2-digit', year:'numeric', month:'2-digit', day:'2-digit'}).replace(' ', 'T').slice(0,16);
+  var input = prompt('Set new end time (' + tz + '):\n\nCurrent: ' + currentLocal, currentLocal);
+  if (input===null) return;
+  var inputDate = new Date(input);
+  if (isNaN(inputDate.getTime())) { alert('Invalid date format. Use YYYY-MM-DDTHH:MM'); return; }
+  var utcOffset = new Date(input).toLocaleString('en-US', {timeZone: tz});
+  var localMs = new Date(utcOffset).getTime();
+  var actualMs = new Date(input).getTime();
+  var offset = actualMs - localMs;
+  var utcDate = new Date(inputDate.getTime() + (inputDate.getTime() - new Date(inputDate.toLocaleString('en-US', {timeZone: tz})).getTime()));
+  try {
+    var r=await fetch(API+'/api/admin/events/'+id+'/duration',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({ends_at:utcDate.toISOString()})});
+    var d=await r.json();
+    if(d.success) loadEvents(); else alert('Error: '+d.error);
+  } catch(e){alert('Connection error.');}
 }
 
 async function loadParticipantList(eventId, eventName) {
