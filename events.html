@@ -641,11 +641,13 @@ function buildEventCard(e) {
   var effStartStr=e.effective_start_at?new Date(e.effective_start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz}):'—';
   var effEndStr=e.effective_end_at?new Date(e.effective_end_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz}):'—';
   var effDurStr='';
+  var effDurLabel='';
   if (e.effective_start_at&&e.effective_end_at) {
     var effMs=new Date(e.effective_end_at)-new Date(e.effective_start_at);
     var effH=Math.floor(effMs/3600000);
     var effM=Math.floor((effMs%3600000)/60000);
-    effDurStr=effH+'h '+effM+'m';
+    effDurStr=String(effH).padStart(2,'0')+':'+String(effM).padStart(2,'0');
+    effDurLabel='EFFECTIVE DURATION: <strong>'+effDurStr+'</strong>';
   }
   var stoppedBy=e.stopped_by?'<span style="font-size:10px;color:#bbb;letter-spacing:1px;">ended by: '+e.stopped_by.replace(/_/g,' ')+'</span>':'';
   var ready=e.reports_contact_confirmed&&e.paid;
@@ -680,7 +682,9 @@ function buildEventCard(e) {
     +'</div>'
     +'<div class="event-card-body" style="border-top:1px solid #f0f0f0;">'
     +'<span style="font-size:9px;color:#bbb;letter-spacing:1px;text-transform:uppercase;min-width:140px;">Effective Event Times:</span>'
-    +'<span>'+(e.effective_start_at?effStartStr:startStr)+' – '+(e.effective_end_at?effEndStr:endsStr)+' <span style="color:#bbb;font-size:10px;">('+tzLabel+')</span>'+'</span>'
+    +'<span>'+(e.effective_start_at?effStartStr:startStr)+' – '+(e.effective_end_at?effEndStr:endsStr)+' <span style="color:#bbb;font-size:10px;">('+tzLabel+')</span>'
+    +(e.status==='finished'&&effDurLabel?'&nbsp;&nbsp;&nbsp;'+effDurLabel:'')
+    +'</span>'
     +'</div>'
     +'<div class="event-card-body" style="border-top:1px solid #f0f0f0;justify-content:space-between;">'
     +'<div style="display:flex;gap:20px;">'
