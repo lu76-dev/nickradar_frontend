@@ -66,6 +66,18 @@
     .participant-inv-btn:hover { color: #cc0000; }
     .back-btn { font-size: 11px; background: none; border: 1px solid #ccc; padding: 4px 12px; cursor: pointer; font-family: inherit; margin-bottom: 16px; }
     .back-btn:hover { border-color: #000; }
+
+    .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .modal-box { background:#fff; border:2px solid #000; padding:24px; width:520px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+    .modal-title { font-size:11px; letter-spacing:3px; text-transform:uppercase; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:16px; }
+    .modal-section { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#999; margin:16px 0 8px; border-bottom:1px solid #f0f0f0; padding-bottom:4px; }
+    .modal-row { margin-bottom:10px; }
+    .modal-row label { font-size:10px; letter-spacing:1px; color:#666; display:block; margin-bottom:3px; text-transform:uppercase; }
+    .modal-row input { border:1px solid #ccc; padding:6px 8px; font-size:12px; width:100%; outline:none; font-family:inherit; }
+    .modal-row input:focus { border-color:#000; }
+    .modal-actions { display:flex; gap:8px; margin-top:20px; padding-top:16px; border-top:1px solid #eee; }
+    .modal-msg { font-size:11px; margin-top:8px; }
   </style>
 </head>
 <body>
@@ -155,7 +167,7 @@ async function loadEventAdmins() {
       if (a.status==='pending') actions+='<span style="font-size:10px;color:#cc6600;letter-spacing:1px;">⏳ Email verification pending</span>';
       if (a.status==='active')  actions+='<button class="btn-sm-danger" onclick="blockAdmin('+a.id+')">Block</button>';
       if (a.status==='blocked') actions+='<button class="btn-sm" onclick="unblockAdmin('+a.id+')">Unblock</button>';
-      actions+='<button class="btn-sm" onclick="setPassword('+a.id+',\''+esc(a.org_name)+'\')">Set PW</button>';
+      actions+='<button class="btn-sm" onclick="openEaModal('+a.id+')">Modify EA Data</button>';
       var eaNum='EA-'+String(a.id).padStart(4,'0');
       return '<tr><td>'+eaNum+'</td><td><strong>'+esc(a.org_name)+'</strong></td><td>'+esc(a.contact_name||'—')+'</td><td>'+esc(a.email)+'</td>'
         +'<td><span class="status-'+a.status+'">'+a.status.toUpperCase()+'</span></td><td>'+fmt(a.created_at)+'</td><td>'+fmt(a.last_login_at)+'</td><td>'+actions+'</td></tr>';
@@ -173,29 +185,73 @@ async function blockAdmin(id) {
   if(!confirm('Block this Event Admin?')) return;
   try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/block',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadEventAdmins(); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
 }
-async function setPassword(id, orgName) {
-  var pw=prompt('Set new password for "'+orgName+'" (min. 8 characters):');
-  if(pw===null) return;
-  if(!pw||pw.length<8){alert('Minimum 8 characters.');return;}
-  try { var r=await fetch(API+'/api/admin/event-admin/'+id+'/set-password',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({password:pw})}); var d=await r.json(); if(d.success) alert('Password set. Email sent.'); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+var currentEaId = null;
+
+async function openEaModal(id) {
+  currentEaId = id;
+  document.getElementById('modal-msg').textContent = '';
+  try {
+    var r = await fetch(API+'/api/admin/event-admins', {headers:{'x-admin-key':adminKey}});
+    var d = await r.json();
+    if (!d.success) { alert('Error loading data.'); return; }
+    var a = d.admins.find(function(x){ return x.id===id; });
+    if (!a) { alert('Admin not found.'); return; }
+    document.getElementById('modal-ea-name').textContent = 'EA-'+String(a.id).padStart(4,'0')+' · '+a.org_name;
+    document.getElementById('m-org-name').value = a.org_name||'';
+    document.getElementById('m-contact-name').value = a.contact_name||'';
+    document.getElementById('m-business-type').value = a.business_type||'';
+    document.getElementById('m-country').value = a.country||'';
+    document.getElementById('m-email').value = a.email||'';
+    document.getElementById('m-street').value = a.street||'';
+    document.getElementById('m-street-number').value = a.street_number||'';
+    document.getElementById('m-postal-code').value = a.postal_code||'';
+    document.getElementById('m-city').value = a.city||'';
+    document.getElementById('m-vat').value = a.vat||'';
+    document.getElementById('m-phone').value = a.phone||'';
+    document.getElementById('m-rc-name').value = a.reports_contact_name||'';
+    document.getElementById('m-rc-phone').value = a.reports_contact_phone||'';
+    document.getElementById('m-password').value = '';
+    document.getElementById('ea-modal').classList.add('active');
+  } catch(e) { alert('Connection error.'); }
 }
 
-async function editAdminProfile(id, orgName) {
-  var fields=['org_name','contact_name','business_type','country','street','plz_city','vat','phone','reports_contact_name','reports_contact_phone'];
-  var labels=['Company Name','Contact Person','Business Type','Country','Street','Postal Code & City','VAT/UID','Phone','Reports Contact Name','Reports Contact Phone'];
-  var vals=[];
-  for(var i=0;i<fields.length;i++){
-    var v=prompt('Edit '+labels[i]+' for "'+orgName+'":');
-    if(v===null) return;
-    vals.push(v.trim()||null);
-  }
-  var body={};
-  fields.forEach(function(f,i){if(vals[i])body[f]=vals[i];});
+function closeEaModal() {
+  document.getElementById('ea-modal').classList.remove('active');
+  currentEaId = null;
+}
+
+async function saveEaData() {
+  var msg = document.getElementById('modal-msg');
+  msg.style.color = 'red'; msg.textContent = '';
+  var pw = document.getElementById('m-password').value;
+  if (pw && pw.length < 8) { msg.textContent = 'Password min. 8 characters.'; return; }
+  var body = {
+    org_name: document.getElementById('m-org-name').value.trim()||null,
+    contact_name: document.getElementById('m-contact-name').value.trim()||null,
+    business_type: document.getElementById('m-business-type').value.trim()||null,
+    country: document.getElementById('m-country').value.trim()||null,
+    email: document.getElementById('m-email').value.trim()||null,
+    street: document.getElementById('m-street').value.trim()||null,
+    street_number: document.getElementById('m-street-number').value.trim()||null,
+    postal_code: document.getElementById('m-postal-code').value.trim()||null,
+    city: document.getElementById('m-city').value.trim()||null,
+    vat: document.getElementById('m-vat').value.trim()||null,
+    phone: document.getElementById('m-phone').value.trim()||null,
+    reports_contact_name: document.getElementById('m-rc-name').value.trim()||null,
+    reports_contact_phone: document.getElementById('m-rc-phone').value.trim()||null
+  };
   try {
-    var r=await fetch(API+'/api/admin/event-admin/'+id+'/profile',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify(body)});
-    var d=await r.json();
-    if(d.success){alert('Profile updated.');loadEventAdmins();}else alert('Error: '+d.error);
-  } catch(e){alert('Connection error.');}
+    var r = await fetch(API+'/api/admin/event-admin/'+currentEaId+'/profile',{method:'PUT',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify(body)});
+    var d = await r.json();
+    if (!d.success) { msg.textContent = 'Profile error: '+d.error; return; }
+    if (pw) {
+      var r2 = await fetch(API+'/api/admin/event-admin/'+currentEaId+'/set-password',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':adminKey},body:JSON.stringify({password:pw})});
+      var d2 = await r2.json();
+      if (!d2.success) { msg.textContent = 'Password error: '+d2.error; return; }
+    }
+    msg.style.color = 'green'; msg.textContent = '✓ Saved.';
+    setTimeout(function(){ closeEaModal(); loadEventAdmins(); }, 800);
+  } catch(e) { msg.textContent = 'Connection error.'; }
 }
 
 async function loadEvents() {
@@ -379,5 +435,39 @@ async function loadReports() {
   } catch(e){setContent('<div class="empty">Connection error.</div>');}
 }
 </script>
+
+<div class="modal-overlay" id="ea-modal">
+  <div class="modal-box">
+    <div class="modal-title">Modify EA Data — <span id="modal-ea-name"></span></div>
+
+    <div class="modal-section">Account Info</div>
+    <div class="modal-row"><label>Company Name</label><input type="text" id="m-org-name" /></div>
+    <div class="modal-row"><label>Contact Person</label><input type="text" id="m-contact-name" /></div>
+    <div class="modal-row"><label>Business Type</label><input type="text" id="m-business-type" /></div>
+    <div class="modal-row"><label>Country</label><input type="text" id="m-country" /></div>
+    <div class="modal-row"><label>Email</label><input type="email" id="m-email" /></div>
+
+    <div class="modal-section">Billing Info</div>
+    <div class="modal-row"><label>Street</label><input type="text" id="m-street" /></div>
+    <div class="modal-row"><label>Street Number</label><input type="text" id="m-street-number" /></div>
+    <div class="modal-row"><label>Postal Code</label><input type="text" id="m-postal-code" /></div>
+    <div class="modal-row"><label>City</label><input type="text" id="m-city" /></div>
+    <div class="modal-row"><label>VAT / UID</label><input type="text" id="m-vat" /></div>
+    <div class="modal-row"><label>Phone</label><input type="tel" id="m-phone" /></div>
+
+    <div class="modal-section">Reports Contact</div>
+    <div class="modal-row"><label>Name</label><input type="text" id="m-rc-name" /></div>
+    <div class="modal-row"><label>Phone</label><input type="tel" id="m-rc-phone" /></div>
+
+    <div class="modal-section">Change Password</div>
+    <div class="modal-row"><label>New Password (min. 8 characters)</label><input type="password" id="m-password" /></div>
+
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-sm-green" onclick="saveEaData()">Save</button>
+      <button class="btn-sm" onclick="closeEaModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
