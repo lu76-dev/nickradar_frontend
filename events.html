@@ -403,6 +403,8 @@ function showPortal() {
   showScreen('portal');
   document.getElementById('top-org-name').textContent = adminData.org_name;
   loadEvents();
+  prefillRcName();
+  startReportPolling();
 }
 
 function showTab(name) {
@@ -411,6 +413,7 @@ function showTab(name) {
   document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
   var el = document.getElementById('tab-'+name);
   if (el) el.classList.add('active');
+  if (name==='create') prefillRcName();
   if (name==='events') loadEvents();
   if (name==='account') loadAccount();
   if (name==='reports') loadReports();
