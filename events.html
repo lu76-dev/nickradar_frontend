@@ -638,6 +638,15 @@ function buildEventCard(e) {
   var tzLabel=tzAbbrs[tz]||tz;
   var startStr=new Date(e.start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz});
   var endsStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz});
+  var effStartStr=e.effective_start_at?new Date(e.effective_start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz}):'—';
+  var effEndStr=e.effective_end_at?new Date(e.effective_end_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz}):'—';
+  var effDurStr='';
+  if (e.effective_start_at&&e.effective_end_at) {
+    var effMs=new Date(e.effective_end_at)-new Date(e.effective_start_at);
+    var effH=Math.floor(effMs/3600000);
+    var effM=Math.floor((effMs%3600000)/60000);
+    effDurStr=' <span style="color:#bbb;font-size:10px;">('+effH+'h '+effM+'m)</span>';
+  }
   var stoppedBy=e.stopped_by?'<span style="font-size:10px;color:#bbb;letter-spacing:1px;">ended by: '+e.stopped_by.replace(/_/g,' ')+'</span>':'';
   var ready=e.reports_contact_confirmed&&e.paid;
   var leftActions='';
@@ -672,6 +681,10 @@ function buildEventCard(e) {
     +'<span>Connections: <strong>'+e.connection_count+'</strong></span>'
     +contactInfo
     +stoppedBy
+    +'</div>'
+    +'<div class="event-card-body" style="border-top:1px solid #f0f0f0;padding-top:8px;">'
+    +'<span style="font-size:10px;color:#bbb;letter-spacing:1px;text-transform:uppercase;">Effective:</span>'
+    +'<span>'+effStartStr+' – '+effEndStr+effDurStr+'</span>'
     +'</div>'
     +'<div class="event-card-actions">'
     +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex:1;">'+leftActions+'</div>'
