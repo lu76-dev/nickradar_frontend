@@ -356,8 +356,11 @@ async function openEventModal(id) {
     var tz = e.timezone || 'Europe/Vienna';
     document.getElementById('ev-modal-title').textContent = 'EV-'+String(e.id).padStart(8,'0')+' · '+e.event_name;
     document.getElementById('ev-modal-tz').textContent = 'Timezone: '+tz;
-    document.getElementById('ev-eff-start').value = utcToLocal(e.effective_start_at, tz)||utcToLocal(e.start_at, tz);
-    document.getElementById('ev-eff-end').value = utcToLocal(e.effective_end_at, tz)||utcToLocal(e.ends_at, tz);
+    // Always pre-fill with resolved effective times
+    var resolvedStart = e.effective_start_at || e.start_at;
+    var resolvedEnd   = e.effective_end_at   || e.ends_at;
+    document.getElementById('ev-eff-start').value = utcToLocal(resolvedStart, tz);
+    document.getElementById('ev-eff-end').value   = utcToLocal(resolvedEnd, tz);
     document.getElementById('ev-modal-msg').textContent = '';
     var stopBtn = document.getElementById('ev-stop-btn');
     stopBtn.style.display = (e.status==='active'||e.status==='pending') ? 'inline-block' : 'none';
