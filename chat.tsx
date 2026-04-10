@@ -36,6 +36,7 @@ export default function ChatScreen({ route, navigation }: any) {
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   const [reported, setReported] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const flatRef = useRef<FlatList>(null);
   const pollRef = useRef<any>(null);
 
@@ -70,11 +71,21 @@ export default function ChatScreen({ route, navigation }: any) {
   }
 
   async function doBlock() {
+    if (blocked) return;
     Alert.alert('Block Chat', 'Block this chat? This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Block', style: 'destructive', onPress: async () => {
-        await blockChat(chatId);
-        navigation.goBack();
+        try {
+          const d = await blockChat(chatId);
+          if (d.success) {
+            setBlocked(true);
+            setTimeout(() => navigation.goBack(), 800);
+          } else {
+            Alert.alert('Error', d.error || 'Could not block chat.');
+          }
+        } catch {
+          Alert.alert('Error', 'Connection error.');
+        }
       }},
     ]);
   }
@@ -120,8 +131,8 @@ export default function ChatScreen({ route, navigation }: any) {
           <TouchableOpacity onPress={() => !reported && setReportModal(true)} style={[s.headerBtn, reported && s.headerBtnReported]}>
             <Text style={[s.headerBtnText, reported && s.headerBtnReportedText]}>{reported ? 'reported' : 'report'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={doBlock} style={s.headerBtnDanger}>
-            <Text style={s.headerBtnDangerText}>block</Text>
+          <TouchableOpacity onPress={doBlock} style={[s.headerBtnDanger, blocked && s.headerBtnBlocked]}>
+            <Text style={[s.headerBtnDangerText, blocked && s.headerBtnBlockedText]}>{blocked ? 'blocked' : 'block'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -207,7 +218,9 @@ const s = StyleSheet.create({
   headerBtn:         { paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#ccc' },
   headerBtnText:     { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
   headerBtnReported: { borderColor: '#eee', backgroundColor: '#fafafa' },
-  headerBtnReportedText: { color: '#bbb' },
+  headerBtnReportedText: { color: '#bbb', textDecorationLine: 'line-through' },
+  headerBtnBlocked: { borderColor: '#eee', backgroundColor: '#fafafa' },
+  headerBtnBlockedText: { color: '#bbb', textDecorationLine: 'line-through' },
   headerBtnDanger:   { paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: RED },
   headerBtnDangerText:{ fontFamily: MONO, fontSize: 10, color: RED, letterSpacing: 1 },
   messageList:       { padding: 16, flexGrow: 1 },
