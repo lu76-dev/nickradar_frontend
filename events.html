@@ -138,12 +138,12 @@
     <input type="text" id="reg-contact" />
     <label>Business Type *</label>
     <select id="reg-business-type" style="border:1px solid #ccc;padding:8px 10px;font-size:13px;width:100%;outline:none;font-family:inherit;background:#fff;margin-top:4px;">
-      <option value="">— select —</option>
-      <option value="lounge_bar_club">Lounge / Bar / Club</option>
+            <option value="">— select —</option>
       <option value="conference_congress">Conference / Congress</option>
       <option value="cruise">Cruise</option>
       <option value="festival_open_air">Festival / Open Air</option>
       <option value="hotel_resort">Hotel / Resort</option>
+      <option value="lounge_bar_club">Lounge / Bar / Club</option>
       <option value="music_concert">Music / Concert</option>
       <option value="sport_club">Sport Club</option>
       <option value="university_campus">University / Campus</option>
@@ -958,7 +958,7 @@ async function loadAccount() {
     if (!d.success) { el.innerHTML='<div class="empty">Error.</div>'; return; }
     var a=d.admin;
     var ro='background:#f5f5f5;color:#999;';
-    var bTypeLabels={lounge_bar_club:'Lounge / Bar / Club',conference_congress:'Conference / Congress',cruise:'Cruise',festival_open_air:'Festival / Open Air',hotel_resort:'Hotel / Resort',music_concert:'Music / Concert',sport_club:'Sport Club',university_campus:'University / Campus',other:'Other'};
+    var bTypeLabels={conference_congress:'Conference / Congress',cruise:'Cruise',festival_open_air:'Festival / Open Air',hotel_resort:'Hotel / Resort',lounge_bar_club:'Lounge / Bar / Club',music_concert:'Music / Concert',sport_club:'Sport Club',university_campus:'University / Campus',other:'Other'};
     var bTypeLabel=bTypeLabels[a.business_type]||a.business_type||'—';
     var hasBilling=!!(a.street&&a.street_number&&a.postal_code&&a.city);
     el.innerHTML='<div style="max-width:440px;">'
