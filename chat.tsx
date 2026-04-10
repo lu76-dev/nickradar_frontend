@@ -35,6 +35,7 @@ export default function ChatScreen({ route, navigation }: any) {
   const [reportModal, setReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
+  const [reported, setReported] = useState(false);
   const flatRef = useRef<FlatList>(null);
   const pollRef = useRef<any>(null);
 
@@ -80,9 +81,18 @@ export default function ChatScreen({ route, navigation }: any) {
 
   async function doReport() {
     if (!reportReason) return;
-    await sendReport(nickname, reportReason, reportDetails);
+    const d = await sendReport(nickname, reportReason, reportDetails);
+    if (d.success || d.error === 'already reported') {
+      setReported(true);
+    }
     setReportModal(false);
-    Alert.alert('Reported', 'Your report has been submitted.');
+    if (d.success) {
+      Alert.alert('Reported', 'Your report has been submitted.');
+    } else if (d.error === 'already reported') {
+      Alert.alert('Already reported', 'You have already reported this participant.');
+    } else {
+      Alert.alert('Error', d.error || 'Could not submit report.');
+    }
   }
 
   function formatTime(str: string) {
@@ -107,8 +117,8 @@ export default function ChatScreen({ route, navigation }: any) {
         </TouchableOpacity>
         <Text style={s.headerNick}>{nickname}</Text>
         <View style={s.headerActions}>
-          <TouchableOpacity onPress={() => setReportModal(true)} style={s.headerBtn}>
-            <Text style={s.headerBtnText}>report</Text>
+          <TouchableOpacity onPress={() => !reported && setReportModal(true)} style={[s.headerBtn, reported && s.headerBtnReported]}>
+            <Text style={[s.headerBtnText, reported && s.headerBtnReportedText]}>{reported ? 'reported' : 'report'}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={doBlock} style={s.headerBtnDanger}>
             <Text style={s.headerBtnDangerText}>block</Text>
@@ -196,6 +206,8 @@ const s = StyleSheet.create({
   headerActions:     { flexDirection: 'row', gap: 8 },
   headerBtn:         { paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#ccc' },
   headerBtnText:     { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
+  headerBtnReported: { borderColor: '#eee', backgroundColor: '#fafafa' },
+  headerBtnReportedText: { color: '#bbb' },
   headerBtnDanger:   { paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: RED },
   headerBtnDangerText:{ fontFamily: MONO, fontSize: 10, color: RED, letterSpacing: 1 },
   messageList:       { padding: 16, flexGrow: 1 },
