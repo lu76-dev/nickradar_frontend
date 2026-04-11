@@ -26,15 +26,19 @@ const MONO     = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export function FooterNav({ navigation, active }: { navigation: any; active: string }) {
   const items = [
-    { label: 'search', screen: 'Search' },
     { label: 'radar',  screen: 'Radar'  },
+    { label: 'search', screen: 'Search' },
     { label: 'mynick', screen: 'MyNick' },
   ];
   return (
     <View style={fn.container}>
       {items.map(item => (
-        <TouchableOpacity key={item.label} onPress={() => item.screen !== active && navigation.navigate(item.screen)}>
-          <Text style={[fn.item, active === item.screen && fn.itemActive]}>{item.label}</Text>
+        <TouchableOpacity
+          key={item.label}
+          style={[fn.tab, active === item.screen && fn.tabActive]}
+          onPress={() => item.screen !== active && navigation.navigate(item.screen)}
+        >
+          <Text style={[fn.label, active === item.screen && fn.labelActive]}>{item.label}</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -42,9 +46,11 @@ export function FooterNav({ navigation, active }: { navigation: any; active: str
 }
 
 const fn = StyleSheet.create({
-  container:  { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20, paddingVertical: 18, borderTopWidth: 2, borderTopColor: GREEN_DIM, backgroundColor: WHITE },
-  item:       { fontFamily: MONO, fontSize: 13, color: GRAY, letterSpacing: 2 },
-  itemActive: { color: GREEN, fontWeight: 'bold' },
+  container:  { flexDirection: 'row', borderTopWidth: 2, borderTopColor: BLACK, backgroundColor: WHITE },
+  tab:        { flex: 1, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
+  tabActive:  { backgroundColor: BLACK },
+  label:      { fontFamily: MONO, fontSize: 13, letterSpacing: 2, color: GRAY },
+  labelActive:{ color: WHITE },
 });
 
 export default function SearchScreen({ navigation }: any) {
