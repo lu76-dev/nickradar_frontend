@@ -758,7 +758,7 @@ async function loadParticipantList(eventId) {
       +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:6px;">'+e.event_name+'</div>'
       +'<div style="font-size:11px;color:#999;letter-spacing:1px;margin-bottom:8px;">'+startStr+' – '+endsStr+'</div>'
       +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+e.sticker_count+'</strong> · Activated: <strong>'+e.activated_count+'</strong> · Connections: <strong>'+e.connection_count+'</strong></div>'
-      +'<button class="btn-outline" onclick="printStickers(''+eventId+'',''+token+'')">🖨 Print Stickers</button>'      +'<a href="'+API+'/api/events/'+eventId+'/print-back?token='+token+'" target="_blank" style="text-decoration:none;margin-left:6px;"><button class="btn-outline">🖨 Print Back Side</button></a>'
+      +'<button class="btn-outline" data-eid="'+eventId+'" data-tok="'+token+'" onclick="printStickers(this)">🖨 Print Stickers</button>'      +'<a href="'+API+'/api/events/'+eventId+'/print-back?token='+token+'" target="_blank" style="text-decoration:none;margin-left:6px;"><button class="btn-outline">🖨 Print Back Side</button></a>'
       +'<button class="btn-outline" onclick="loadParticipantList('+eventId+')" style="margin-left:8px;">↻ Refresh</button>'
       +'</div>';
     html+='<div class="participant-list-grid">';
