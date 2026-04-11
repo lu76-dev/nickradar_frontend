@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getChats, getIncoming, getOutgoing, getHistory, answerRequest } from './api';
+import { getChats, getIncoming, getOutgoing, getHistory, getBlockedChats, answerRequest } from './api';
 import { FooterNav } from './search';
 import { TopBar } from './App';
 
@@ -49,18 +49,20 @@ export default function RadarScreen({ navigation }: any) {
   const [chats, setChats]       = useState<any[]>([]);
   const [incoming, setIncoming] = useState<any[]>([]);
   const [outgoing, setOutgoing] = useState<any[]>([]);
-  const [history, setHistory]   = useState<any[]>([]);
+  const [history, setHistory]         = useState<any[]>([]);
+  const [blockedChats, setBlockedChats] = useState<any[]>([]);
   const [loading, setLoading]   = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [c, i, o, h] = await Promise.all([getChats(), getIncoming(), getOutgoing(), getHistory()]);
+      const [c, i, o, h, bc] = await Promise.all([getChats(), getIncoming(), getOutgoing(), getHistory(), getBlockedChats()]);
       if (c.success) setChats(c.chats || []);
       if (i.success) setIncoming(i.requests || []);
       if (o.success) setOutgoing(o.requests || []);
       if (h.success) setHistory(h.requests || []);
+      if (bc.success) setBlockedChats(bc.chats || []);
     } catch {}
     setLoading(false);
     setRefreshing(false);
@@ -127,19 +129,34 @@ export default function RadarScreen({ navigation }: any) {
   }
 
   function renderHistory() {
-    if (!history.length) return <Text style={s.empty}>no history yet</Text>;
-    return history.map((r, i) => {
-      const statusColor = r.status === 'yes' ? 'green' : r.status === 'no' ? RED : GRAY;
-      return (
-        <View key={i} style={s.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.nick}>{r.target_nickname || r.seeker_nickname}</Text>
-            <Text style={s.sub}>{formatDate(r.sent_at)}</Text>
+    const hasHistory = history.length > 0;
+    const hasBlocked = blockedChats.length > 0;
+    if (!hasHistory && !hasBlocked) return <Text style={s.empty}>no history yet</Text>;
+    return (
+      <>
+        {blockedChats.map(bc => (
+          <View key={'bc-' + bc.id} style={s.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.nick}>{bc.other_nickname}</Text>
+              <Text style={s.sub}>{formatDate(bc.blocked_at)}</Text>
+            </View>
+            <Text style={[s.statusLabel, { color: RED }]}>{bc.blocked_label}</Text>
           </View>
-          <Text style={[s.statusLabel, { color: statusColor }]}>{r.status}</Text>
-        </View>
-      );
-    });
+        ))}
+        {history.map((r, i) => {
+          const statusColor = r.status === 'yes' ? GREEN : r.status === 'no' ? RED : GRAY;
+          return (
+            <View key={i} style={s.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.nick}>{r.target_nickname || r.seeker_nickname}</Text>
+                <Text style={s.sub}>{formatDate(r.sent_at)}</Text>
+              </View>
+              <Text style={[s.statusLabel, { color: statusColor }]}>{r.status}</Text>
+            </View>
+          );
+        })}
+      </>
+    );
   }
 
   return (

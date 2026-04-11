@@ -124,3 +124,8 @@ export async function checkReported(nickname: string) {
   const r = await fetch(`${API}/api/reports/check?nickname=${encodeURIComponent(nickname)}`, { headers: headers() as any });
   return r.json();
 }
+
+export async function getBlockedChats() {
+  const r = await fetch(`${API}/api/chats/blocked`, { headers: headers() as any });
+  return r.json();
+}
