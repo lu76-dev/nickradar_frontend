@@ -38,9 +38,9 @@ export function FooterNav({ navigation, active, radarAlert = false }: { navigati
           key={item.label}
           style={[fn.tab, active === item.screen && fn.tabActive]}
           onPress={() => {
-          if (item.screen === active) return;
-          navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: item.screen }] }));
-        }}
+            if (item.screen === active) return;
+            navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: item.screen }] }));
+          }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[fn.label, active === item.screen && fn.labelActive]}>{item.label}</Text>
