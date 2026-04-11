@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getChats, getIncoming, getOutgoing, getHistory, getBlockedChats, answerRequest } from './api';
+import { getChats, getIncoming, getOutgoing, getHistory, getBlockedChats, answerRequest, getMe } from './api';
 import { FooterNav } from './search';
 import { TopBar } from './App';
 
@@ -38,11 +38,7 @@ const b = StyleSheet.create({
   badgeText: { fontFamily: MONO, fontSize: 9, color: WHITE, fontWeight: 'bold' },
 });
 
-function formatDate(str: string) {
-  const d = new Date(str);
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }) +
-    ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-}
+
 
 export default function RadarScreen({ navigation }: any) {
   const [tab, setTab]           = useState<Tab>('chats');
@@ -51,13 +47,25 @@ export default function RadarScreen({ navigation }: any) {
   const [outgoing, setOutgoing] = useState<any[]>([]);
   const [history, setHistory]         = useState<any[]>([]);
   const [blockedChats, setBlockedChats] = useState<any[]>([]);
+  const [timezone, setTimezone] = useState('Europe/Vienna');
   const [loading, setLoading]   = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  function formatDate(str: string) {
+    try {
+      const d = new Date(str);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: timezone }) +
+        ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: timezone });
+    } catch {
+      return new Date(str).toLocaleString('en-GB');
+    }
+  }
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [c, i, o, h, bc] = await Promise.all([getChats(), getIncoming(), getOutgoing(), getHistory(), getBlockedChats()]);
+      const [c, i, o, h, bc, meD] = await Promise.all([getChats(), getIncoming(), getOutgoing(), getHistory(), getBlockedChats(), getMe()]);
+      if (meD.success && meD.participant?.timezone) setTimezone(meD.participant.timezone);
       if (c.success) setChats(c.chats || []);
       if (i.success) setIncoming(i.requests || []);
       if (o.success) setOutgoing(o.requests || []);
