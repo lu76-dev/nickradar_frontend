@@ -91,7 +91,7 @@ export default function App() {
     getMe().then(d => {
       if (d.success) {
         setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at });
-        setInitialRoute('Search');
+        setInitialRoute('Radar');
       } else {
         clearSession();
         setInitialRoute('Auth');

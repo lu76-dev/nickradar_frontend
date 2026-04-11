@@ -40,7 +40,7 @@ export default function AuthScreen({ navigation }: any) {
       if (!d.success) { setError(d.error || 'Invalid code.'); setLoading(false); return; }
       setSessionToken(d.token);
       setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at });
-      navigation.replace('Search');
+      navigation.replace('Radar');
     } catch {
       setError('Connection error.');
     }
