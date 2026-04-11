@@ -39,11 +39,7 @@ export function FooterNav({ navigation, active, radarAlert = false }: { navigati
           style={[fn.tab, active === item.screen && fn.tabActive]}
           onPress={() => {
             if (item.screen === active) return;
-            if (item.screen === 'Radar') {
-              navigation.goBack();
-            } else {
-              navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: item.screen }] }));
-            }
+            navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: item.screen }] }));
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
