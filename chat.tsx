@@ -36,6 +36,7 @@ export default function ChatScreen({ route, navigation }: any) {
   const [chatBlocked, setChatBlocked]   = useState(false);
   const [reported, setReported]         = useState(false);
   const [reportModal, setReportModal]   = useState(false);
+  const [blockModal, setBlockModal]     = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   const [timezone, setTimezone]         = useState('Europe/Vienna');
@@ -101,24 +102,18 @@ export default function ChatScreen({ route, navigation }: any) {
 
   async function doBlock() {
     if (chatBlocked) return;
-    Alert.alert('Block Chat', 'Block this chat? This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Block', style: 'destructive', onPress: async () => {
-          try {
-            const d = await blockChat(chatId);
-            if (d.success) {
-              setChatBlocked(true);
-              setTimeout(() => navigation.goBack(), 600);
-            } else {
-              Alert.alert('Error', d.error || 'Could not block.');
-            }
-          } catch {
-            Alert.alert('Error', 'Connection error.');
-          }
-        }
-      },
-    ]);
+    setBlockModal(true);
+  }
+
+  async function doBlockConfirm() {
+    setBlockModal(false);
+    try {
+      const d = await blockChat(chatId);
+      if (d.success) {
+        setChatBlocked(true);
+        setTimeout(() => navigation.goBack(), 600);
+      }
+    } catch {}
   }
 
   async function doReport() {
@@ -271,6 +266,24 @@ export default function ChatScreen({ route, navigation }: any) {
                 disabled={!reportReason}
               >
                 <Text style={[s.modalBtnText, { color: WHITE }]}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={blockModal} transparent animationType="slide" onRequestClose={() => setBlockModal(false)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <Text style={s.modalTitle}>BLOCK CHAT</Text>
+            <Text style={{ fontFamily: MONO, fontSize: 12, color: GRAY, marginBottom: 20, letterSpacing: 1 }}>
+              Block this chat? This cannot be undone.
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity style={[s.modalBtn, { flex: 1, borderColor: '#ccc' }]} onPress={() => setBlockModal(false)}>
+                <Text style={s.modalBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.modalBtn, { flex: 1, backgroundColor: RED, borderColor: RED }]} onPress={doBlockConfirm}>
+                <Text style={[s.modalBtnText, { color: WHITE }]}>Block</Text>
               </TouchableOpacity>
             </View>
           </View>
