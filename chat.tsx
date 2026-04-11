@@ -13,8 +13,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getMe, getMessages, sendMessage, blockChat, sendReport, checkReported } from './api';
+import { getMe, getMessages, sendMessage, blockChat, sendReport, checkReported, getChats, getIncoming } from './api';
 import { TopBar } from './App';
+import { FooterNav } from './search';
 
 const WHITE = '#ffffff';
 const BLACK = '#000000';
@@ -40,9 +41,12 @@ export default function ChatScreen({ route, navigation }: any) {
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   const [timezone, setTimezone]         = useState('Europe/Vienna');
+  const [radarAlert, setRadarAlert]     = useState(false);
+  const [myStickerId, setMyStickerId]   = useState<number | null>(null);
 
-  const flatRef = useRef<FlatList>(null);
-  const pollRef = useRef<any>(null);
+  const flatRef    = useRef<FlatList>(null);
+  const pollRef    = useRef<any>(null);
+  const alertRef   = useRef<any>(null);
 
   // Initial load: messages + me + report status
   const init = useCallback(async () => {
@@ -55,6 +59,7 @@ export default function ChatScreen({ route, navigation }: any) {
       if (meD.success) {
         setMe(meD.participant);
         if (meD.participant.timezone) setTimezone(meD.participant.timezone);
+        if (meD.participant.sticker_id) setMyStickerId(meD.participant.sticker_id);
       }
       if (msgD.success) setMessages(msgD.messages || []);
       if (repD.success && repD.reported) setReported(true);
@@ -74,10 +79,22 @@ export default function ChatScreen({ route, navigation }: any) {
     } catch {}
   }, [chatId]);
 
+  async function pollAlerts() {
+    try {
+      const [chatsD, incomingD] = await Promise.all([getChats(), getIncoming()]);
+      const chats = chatsD.success ? (chatsD.chats || []) : [];
+      const incoming = incomingD.success ? (incomingD.requests || []) : [];
+      const hasAlert = incoming.length > 0 ||
+        chats.some((ch: any) => ch.last_sender_id && ch.last_sender_id !== myStickerId);
+      setRadarAlert(hasAlert);
+    } catch {}
+  }
+
   useEffect(() => {
     init();
-    pollRef.current = setInterval(pollMessages, 5000);
-    return () => clearInterval(pollRef.current);
+    pollRef.current  = setInterval(pollMessages, 5000);
+    alertRef.current = setInterval(pollAlerts, 5000);
+    return () => { clearInterval(pollRef.current); clearInterval(alertRef.current); };
   }, []);
 
   // Scroll to bottom when messages update
@@ -230,6 +247,8 @@ export default function ChatScreen({ route, navigation }: any) {
           </View>
         )}
       </KeyboardAvoidingView>
+
+      <FooterNav navigation={navigation} active="Radar" radarAlert={radarAlert} />
 
       <Modal visible={reportModal} transparent animationType="slide" onRequestClose={() => setReportModal(false)}>
         <View style={s.modalOverlay}>
