@@ -49,7 +49,7 @@ const fn = StyleSheet.create({
   container:  { flexDirection: 'row', borderTopWidth: 2, borderTopColor: BLACK, backgroundColor: WHITE },
   tab:        { flex: 1, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   tabActive:  { backgroundColor: BLACK },
-  label:      { fontFamily: MONO, fontSize: 13, letterSpacing: 2, color: GRAY },
+  label:      { fontFamily: MONO, fontSize: 13, letterSpacing: 2, color: GRAY, fontWeight: 'bold' },
   labelActive:{ color: WHITE },
 });
 

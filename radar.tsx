@@ -206,7 +206,7 @@ const s = StyleSheet.create({
   tabRow:       { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: BLACK },
   tabBtn:       { flex: 1, paddingVertical: 10, alignItems: 'center' },
   tabBtnActive: { backgroundColor: BLACK },
-  tabLabel:     { fontFamily: MONO, fontSize: 10, letterSpacing: 1, color: GRAY },
+  tabLabel:     { fontFamily: MONO, fontSize: 10, letterSpacing: 1, color: GRAY, fontWeight: 'bold' },
   tabLabelActive:{ color: WHITE },
   loader:       { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll:       { flex: 1 },
