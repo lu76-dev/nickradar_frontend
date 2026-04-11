@@ -36,7 +36,10 @@ export function FooterNav({ navigation, active, radarAlert = false }: { navigati
         <TouchableOpacity
           key={item.label}
           style={[fn.tab, active === item.screen && fn.tabActive]}
-          onPress={() => item.screen !== active && navigation.navigate(item.screen)}
+          onPress={() => {
+          if (item.screen === active) return;
+          navigation.reset({ index: 0, routes: [{ name: item.screen }] });
+        }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[fn.label, active === item.screen && fn.labelActive]}>{item.label}</Text>
