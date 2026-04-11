@@ -150,7 +150,7 @@ export default function ChatScreen({ route, navigation }: any) {
   if (loading) {
     return (
       <SafeAreaView style={s.safe} edges={['bottom']}>
-        <TopBar />
+        <TopBar navigation={navigation} />
         <View style={s.loader}><ActivityIndicator color={GREEN} /></View>
       </SafeAreaView>
     );
@@ -158,7 +158,7 @@ export default function ChatScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
-      <TopBar />
+      <TopBar navigation={navigation} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Text style={s.backText}>‹ back</Text>

@@ -87,7 +87,7 @@ export default function MyNickScreen({ navigation }: any) {
   if (loading) {
     return (
       <SafeAreaView style={s.safe} edges={['bottom']}>
-        <TopBar />
+        <TopBar navigation={navigation} />
         <View style={s.loader}><ActivityIndicator color={GREEN} /></View>
       </SafeAreaView>
     );
@@ -95,7 +95,7 @@ export default function MyNickScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
-      <TopBar />
+      <TopBar navigation={navigation} />
       <ScrollView contentContainerStyle={s.scroll}>
         <View style={s.nickRow}>
           <Text style={s.nickLabel}>YOUR NICKNAME</Text>
@@ -140,11 +140,6 @@ export default function MyNickScreen({ navigation }: any) {
           {saving ? <ActivityIndicator color={BLACK} /> : <Text style={s.saveBtnText}>SAVE</Text>}
         </TouchableOpacity>
 
-        <View style={s.divider} />
-
-        <TouchableOpacity style={s.leaveBtn} onPress={doLogout}>
-          <Text style={s.leaveBtnText}>Leave Event</Text>
-        </TouchableOpacity>
       </ScrollView>
       <FooterNav navigation={navigation} active="MyNick" />
     </SafeAreaView>
@@ -173,6 +168,4 @@ const s = StyleSheet.create({
   saveBtn:      { backgroundColor: GREEN, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: BLACK },
   saveBtnText:  { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', color: BLACK, letterSpacing: 3 },
   divider:      { height: 1, backgroundColor: '#eee', marginVertical: 32 },
-  leaveBtn:     { paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#ccc' },
-  leaveBtnText: { fontFamily: MONO, fontSize: 11, color: GRAY, letterSpacing: 2 },
 });

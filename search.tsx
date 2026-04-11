@@ -91,7 +91,7 @@ export default function SearchScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
-      <TopBar />
+      <TopBar navigation={navigation} />
       <View style={s.searchBar}>
         <TextInput
           style={s.searchInput}

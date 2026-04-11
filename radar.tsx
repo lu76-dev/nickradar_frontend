@@ -169,7 +169,7 @@ export default function RadarScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
-      <TopBar />
+      <TopBar navigation={navigation} />
       <View style={s.tabRow}>
         {tabs.map(t => (
           <TouchableOpacity key={t.key} style={[s.tabBtn, tab === t.key && s.tabBtnActive]} onPress={() => setTab(t.key)}>
