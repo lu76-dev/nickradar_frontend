@@ -57,7 +57,7 @@ export function TopBar({ navigation }: { navigation?: any }) {
   return (
     <View style={ts.bar}>
       <Image source={{ uri: 'https://app.nickradar.com/nr_logo.png' }} style={ts.logo} resizeMode="contain" />
-      <Text style={ts.name} numberOfLines={1}>{event.event_name}</Text>
+      <Text style={ts.name} numberOfLines={1}>EVENT: {event.event_name}</Text>
       <Text style={[ts.countdown, isUrgent && ts.urgent, isEnded && ts.ended]}>
         {isEnded ? 'ENDED' : timeStr}
       </Text>
