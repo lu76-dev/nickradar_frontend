@@ -172,8 +172,8 @@ export default function SearchScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   safe:                { flex: 1, backgroundColor: WHITE },
-  searchBar:           { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee', paddingHorizontal: 16, paddingVertical: 10 },
-  searchInput:         { flex: 1, fontFamily: MONO, fontSize: 14, color: BLACK, letterSpacing: 1 },
+  searchBar:           { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee', paddingHorizontal: 16, paddingVertical: 14 },
+  searchInput:         { flex: 1, fontFamily: MONO, fontSize: 14, color: BLACK, letterSpacing: 1, borderWidth: 0, outlineWidth: 0 },
   results:             { flex: 1 },
   empty:               { fontFamily: MONO, fontSize: 11, color: GRAY, textAlign: 'center', marginTop: 40, letterSpacing: 2 },
   resultRow:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
