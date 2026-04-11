@@ -17,7 +17,6 @@ import { TopBar } from './App';
 const WHITE     = '#ffffff';
 const BLACK     = '#000000';
 const GREEN     = '#00ff41';
-const GREEN_DIM = '#2a6a2a';
 const GRAY      = '#999999';
 const RED       = '#cc0000';
 const MONO      = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
@@ -40,10 +39,6 @@ function GrayBadge({ count }: { count: number }) {
       <Text style={b.txt}>{count}</Text>
     </View>
   );
-}
-
-function RedDot() {
-  return <View style={b.dot} />;
 }
 
 const b = StyleSheet.create({

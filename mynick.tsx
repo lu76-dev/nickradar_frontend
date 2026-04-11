@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Platform,
   ScrollView,
@@ -75,13 +74,6 @@ export default function MyNickScreen({ navigation }: any) {
     } catch { setSaved('Connection error.'); }
     setSaving(false);
     setTimeout(() => setSaved(''), 2000);
-  }
-
-  function doLogout() {
-    Alert.alert('Leave Event', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Leave', style: 'destructive', onPress: () => { clearSession(); navigation.replace('Auth'); } },
-    ]);
   }
 
   if (loading) {
