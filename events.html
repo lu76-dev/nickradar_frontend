@@ -927,7 +927,9 @@ async function doDeleteAccount() {
     if (fee === null) return;
     var url = API+'/api/events/'+eventId+'/print?token='+token;
     if (fee.trim()) url += '&fee='+encodeURIComponent(fee.trim());
-    window.open(url, '_blank');
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 </script>
 </body>
