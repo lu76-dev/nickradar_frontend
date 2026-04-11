@@ -93,8 +93,8 @@ export default function ChatScreen({ route, navigation }: any) {
 
   useEffect(() => {
     init();
-    pollRef.current  = setInterval(pollMessages, 5000);
-    alertRef.current = setInterval(pollAlerts, 5000);
+    pollRef.current  = setInterval(pollMessages, 2000);
+    alertRef.current = setInterval(pollAlerts, 2000);
     return () => {
       clearInterval(pollRef.current);
       clearInterval(alertRef.current);

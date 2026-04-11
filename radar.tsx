@@ -96,7 +96,7 @@ export default function RadarScreen({ navigation }: any) {
 
   useEffect(() => {
     load();
-    pollRef.current = setInterval(() => load(true), 5000);
+    pollRef.current = setInterval(() => load(true), 2000);
     return () => clearInterval(pollRef.current);
   }, []);
 
