@@ -110,11 +110,15 @@ export default function App() {
           initialRouteName={initialRoute}
           screenOptions={{ headerShown: false, contentStyle: { backgroundColor: WHITE }, animation: 'none' }}
         >
-          <Stack.Screen name="Auth"    component={AuthScreen}    />
-          <Stack.Screen name="Search"  component={SearchScreen}  />
-          <Stack.Screen name="Radar"   component={RadarScreen}   />
-          <Stack.Screen name="MyNick"  component={MyNickScreen}  />
-          <Stack.Screen name="Chat"    component={ChatScreen}    />
+          <Stack.Group>
+            <Stack.Screen name="Auth"    component={AuthScreen}    />
+            <Stack.Screen name="Radar"   component={RadarScreen}   />
+            <Stack.Screen name="Search"  component={SearchScreen}  />
+            <Stack.Screen name="MyNick"  component={MyNickScreen}  />
+          </Stack.Group>
+          <Stack.Group screenOptions={{ presentation: 'containedTransparentModal', animation: 'none' }}>
+            <Stack.Screen name="Chat"    component={ChatScreen}    />
+          </Stack.Group>
         </Stack.Navigator>
       </NavigationContainer>
     </EventContext.Provider>
