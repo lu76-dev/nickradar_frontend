@@ -110,7 +110,6 @@
     <button class="tab active" onclick="showTab('event-admins')">Event Admins</button>
     <button class="tab" onclick="showTab('events')">Events</button>
     <button class="tab" onclick="showTab('invoices')">Invoices</button>
-    <button class="tab" id="tab-btn-reports" onclick="showTab('reports')">Reports</button>
   </div>
   <div class="content" id="tab-content"><div class="loading">Loading...</div></div>
 </div>
@@ -130,7 +129,7 @@ async function verifyAndShow() {
 }
 
 function showLogin() { document.getElementById('screen-login').style.display='flex'; document.getElementById('screen-admin').style.display='none'; }
-function showAdmin() { document.getElementById('screen-login').style.display='none'; document.getElementById('screen-admin').style.display='block'; loadEventAdmins(); startAdminReportPolling(); }
+function showAdmin() { document.getElementById('screen-login').style.display='none'; document.getElementById('screen-admin').style.display='block'; loadEventAdmins(); }
 
 async function doLogin() {
   var key=document.getElementById('admin-key').value.trim();
@@ -149,60 +148,16 @@ function doLogout() { localStorage.removeItem('nr_admin_key'); adminKey=''; docu
 
 function showTab(name) {
   document.querySelectorAll('.tab').forEach(function(t,i) {
-    t.classList.toggle('active', ['event-admins','events','invoices','reports'][i]===name);
+    t.classList.toggle('active', ['event-admins','events','invoices'][i]===name);
   });
   if (name==='event-admins') loadEventAdmins();
   else if (name==='events') loadEvents();
   else if (name==='invoices') loadInvoices();
-  else if (name==='reports') loadReports();
-  var rbtn = document.getElementById('tab-btn-reports');
-  if (rbtn && rbtn.getAttribute('data-reports-open')) { updateAdminReportsBadge(parseInt(rbtn.getAttribute('data-reports-open'))); }
 }
 
 function setContent(html) { document.getElementById('tab-content').innerHTML=html; }
 function fmt(s) { if(!s) return '—'; var d=new Date(s); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-var _adminReportPoll = null;
-
-function startAdminReportPolling() {
-  if (_adminReportPoll) clearInterval(_adminReportPoll);
-  checkAdminReportsBadge();
-  _adminReportPoll = setInterval(checkAdminReportsBadge, 30000);
-}
-
-async function checkAdminReportsBadge() {
-  try {
-    var r = await fetch(API+'/api/admin/reports', {headers:{'x-admin-key':adminKey}});
-    var d = await r.json();
-    if (!d.success) return;
-    var openCount = d.reports.filter(function(r){ return !r.resolved; }).length;
-    updateAdminReportsBadge(openCount);
-  } catch(e) {}
-}
-
-function updateAdminReportsBadge(openCount) {
-  var btn = document.getElementById('tab-btn-reports');
-  if (!btn) return;
-  if (openCount > 0) {
-    btn.setAttribute('data-reports-open', openCount);
-    btn.textContent = 'Reports (' + openCount + ')';
-    btn.style.fontWeight = 'bold';
-    if (btn.classList.contains('active')) {
-      btn.style.background = '#cc0000';
-      btn.style.color = '#fff';
-    } else {
-      btn.style.background = '';
-      btn.style.color = '#cc0000';
-    }
-  } else {
-    btn.removeAttribute('data-reports-open');
-    btn.textContent = 'Reports';
-    btn.style.fontWeight = '';
-    btn.style.background = '';
-    btn.style.color = '';
-  }
-}
 
 async function loadEventAdmins() {
   setContent('<div class="loading">Loading...</div>');
@@ -306,10 +261,14 @@ async function loadEvents() {
       var payBtn = payPending
         ? '<button class="btn-sm-green" onclick="confirmPayment('+e.id+')">✓ Payment</button>'
         : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled>✓ Payment</button>';
+      var exportBtn = e.status==='active'
+        ? '<button class="btn-sm" onclick="downloadChatExport('+e.id+')">CSV Export</button>'
+        : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled title="Only available during active events">CSV Export</button>';
       var evNum='EV-'+String(e.id).padStart(8,'0');
       var actions='<button class="btn-sm" onclick="openEventModal('+e.id+')">Modify Event</button>'
         +'<button class="btn-sm" onclick="loadParticipantList('+e.id+',\"'+esc(e.event_name)+'\")">Participants</button>'
-        +payBtn;
+        +payBtn
+        +exportBtn;
       return '<tr>'
         +'<td>'+evNum+'</td>'
         +'<td>'+actions+'</td>'
@@ -466,6 +425,22 @@ async function invalidateSticker(stickerId, eventId, eventName) {
   try { var r=await fetch(API+'/api/admin/stickers/'+stickerId+'/invalidate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadParticipantList(eventId,eventName); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
 }
 
+async function downloadChatExport(eventId) {
+  try {
+    var r = await fetch(API+'/api/admin/events/'+eventId+'/chat-export', {headers:{'x-admin-key':adminKey}});
+    if (!r.ok) { var d=await r.json(); alert('Error: '+(d.error||r.status)); return; }
+    var blob = await r.blob();
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'nickradar_chat_export_event_'+eventId+'.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('Connection error.'); }
+}
+
 async function loadInvoices() {
   setContent('<div class="loading">Loading...</div>');
   try {
@@ -485,51 +460,6 @@ async function loadInvoices() {
   } catch(e){setContent('<div class="empty">Connection error.</div>');}
 }
 
-async function loadReports() {
-  setContent('<div class="loading">Loading...</div>');
-  try {
-    var r=await fetch(API+'/api/admin/reports',{headers:{'x-admin-key':adminKey}});
-    var d=await r.json();
-    if(!d.success){setContent('<div class="empty">Error.</div>');return;}
-    var open=d.reports.filter(function(r){return !r.resolved;});
-    var resolved=d.reports.filter(function(r){return r.resolved;});
-    var renderRow=function(r){
-      var rowStyle=r.resolved?'opacity:0.5;':'';
-      var tz=r.event_timezone||'Europe/Vienna';
-      var timeStr=new Date(r.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz})+' ('+tz+')';
-      return '<tr style="'+rowStyle+'">'
-        +'<td style="font-size:10px;color:#999;">#'+r.id+'</td>'
-        +'<td>'+esc(r.event_name)+'<br><small style="color:#999;">'+esc(r.admin_org||'')+'</small></td>'
-        +'<td>'+esc(r.reporter_nickname)+'</td>'
-        +'<td>'+esc(r.reported_nickname)+'</td>'
-        +'<td>'+esc(r.reason)+'</td>'
-        +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(r.details||'')+'">'+esc(r.details||'—')+'</td>'
-        +'<td style="white-space:nowrap;">'+timeStr+'</td>'
-        +'<td>'+(!r.resolved
-          ?'<button class="btn-action" onclick="resolveReport('+r.id+')">✓ Resolve</button>'
-          :'<span style="font-size:10px;color:#999;">✓ Resolved</span>'
-            +(r.resolved_by?'<br><small style="color:#bbb;">'+esc(r.resolved_by)+'</small>':'')
-            +(r.resolved_by_ip?'<br><small style="color:#bbb;">'+esc(r.resolved_by_ip)+'</small>':''))
-        +'</td>'
-        +'</tr>';
-    };
-    var rows=(open.concat(resolved)).map(renderRow).join('');
-    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadReports()">↻ Refresh</button>'
-      +(open.length>0?'<span style="color:#cc0000;font-weight:bold;font-size:11px;margin-left:8px;">⚠ '+open.length+' open</span>':'<span style="color:green;font-size:11px;margin-left:8px;">✓ No open reports</span>')
-      +'<span class="count">'+d.reports.length+' total</span></div>'
-      +'<table><thead><tr><th>#</th><th>Event / Org</th><th>Reporter</th><th>Reported</th><th>Reason</th><th>Details</th><th>Date (Event TZ)</th><th>Action</th></tr></thead>'
-      +'<tbody>'+(rows||'<tr><td colspan="8" class="empty">No reports yet.</td></tr>')+'</tbody></table>');
-    updateAdminReportsBadge(open.length);
-  } catch(e){setContent('<div class="empty">Connection error.</div>');}
-}
-
-async function resolveReport(id) {
-  try {
-    var r=await fetch(API+'/api/admin/reports/'+id+'/resolve',{method:'PUT',headers:{'x-admin-key':adminKey}});
-    var d=await r.json();
-    if(d.success) { loadReports(); checkAdminReportsBadge(); } else alert('Error: '+d.error);
-  } catch(e){alert('Connection error.');}
-}
 </script>
 
 <div class="modal-overlay" id="ea-modal">
