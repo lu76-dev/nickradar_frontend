@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getSessionToken, getMe, clearSession } from './api';
+import { getSessionToken, getMe, clearSession, getChats, getIncoming } from './api';
 import AuthScreen from './auth';
 import SearchScreen from './search';
 import RadarScreen from './radar';
@@ -21,7 +21,9 @@ const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 export const EventContext = createContext<{
   event: { event_name: string; ends_at: string } | null;
   setEvent: (e: { event_name: string; ends_at: string } | null) => void;
-}>({ event: null, setEvent: () => {} });
+  radarAlert: boolean;
+  setRadarAlert: (v: boolean) => void;
+}>({ event: null, setEvent: () => {}, radarAlert: false, setRadarAlert: () => {} });
 
 function useCountdown(endsAt: string | undefined) {
   const [remaining, setRemaining] = useState(0);
@@ -86,6 +88,26 @@ const ts = StyleSheet.create({
 export default function App() {
   const [initialRoute, setInitialRoute] = useState<string | null>(null);
   const [event, setEvent] = useState<{ event_name: string; ends_at: string } | null>(null);
+  const [radarAlert, setRadarAlert] = useState(false);
+  const stickerIdRef = React.useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!event) return;
+    const poll = async () => {
+      try {
+        const meD = await getMe();
+        if (meD.success && meD.participant?.sticker_id) stickerIdRef.current = meD.participant.sticker_id;
+        const [chatsD, incomingD] = await Promise.all([getChats(), getIncoming()]);
+        const chats = chatsD.success ? (chatsD.chats || []) : [];
+        const incoming = incomingD.success ? (incomingD.requests || []) : [];
+        const hasAlert = incoming.length > 0 || chats.some((ch: any) => ch.last_sender_id && ch.last_sender_id !== stickerIdRef.current);
+        setRadarAlert(hasAlert);
+      } catch {}
+    };
+    poll();
+    const id = setInterval(poll, 2000);
+    return () => clearInterval(id);
+  }, [event]);
 
   useEffect(() => {
     const token = getSessionToken();
@@ -104,7 +126,7 @@ export default function App() {
   if (!initialRoute) return <View style={{ flex: 1, backgroundColor: WHITE }} />;
 
   return (
-    <EventContext.Provider value={{ event, setEvent }}>
+    <EventContext.Provider value={{ event, setEvent, radarAlert, setRadarAlert }}>
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={initialRoute}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getChats, getIncoming, getOutgoing, getHistory, getBlockedChats, answerRequest, getMe } from './api';
 import { FooterNav } from './search';
-import { TopBar } from './App';
+import { TopBar, EventContext } from './App';
 
 const WHITE     = '#ffffff';
 const BLACK     = '#000000';
@@ -51,6 +51,7 @@ const b = StyleSheet.create({
 
 
 export default function RadarScreen({ navigation }: any) {
+  const { setRadarAlert } = useContext(EventContext);
   const [tab, setTab]           = useState<Tab>('chats');
   const [chats, setChats]       = useState<any[]>([]);
   const [incoming, setIncoming] = useState<any[]>([]);
@@ -239,7 +240,7 @@ export default function RadarScreen({ navigation }: any) {
         </ScrollView>
       )}
 
-      <FooterNav navigation={navigation} active="Radar" radarAlert={chats.filter(ch => ch.last_sender_id && ch.last_sender_id !== myStickerId).length > 0 || incoming.length > 0} />
+      <FooterNav navigation={navigation} active="Radar" />
     </SafeAreaView>
   );
 }

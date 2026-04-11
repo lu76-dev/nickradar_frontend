@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,8 +12,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getMe, getMessages, sendMessage, blockChat, getChats, getIncoming } from './api';
-import { TopBar } from './App';
+import { getMe, getMessages, sendMessage, blockChat } from './api';
+import { TopBar, EventContext } from './App';
 import { FooterNav } from './search';
 
 const WHITE = '#ffffff';
@@ -25,6 +25,7 @@ const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export default function ChatScreen({ route, navigation }: any) {
   const { chatId, nickname } = route.params;
+  const { radarAlert } = useContext(EventContext);
 
   const [me, setMe]                     = useState<any>(null);
   const [messages, setMessages]         = useState<any[]>([]);
@@ -34,11 +35,9 @@ export default function ChatScreen({ route, navigation }: any) {
   const [chatBlocked, setChatBlocked]   = useState(false);
   const [blockModal, setBlockModal]     = useState(false);
   const [timezone, setTimezone]         = useState('Europe/Vienna');
-  const [radarAlert, setRadarAlert]     = useState(false);
 
   const flatRef      = useRef<FlatList>(null);
   const pollRef      = useRef<any>(null);
-  const alertRef     = useRef<any>(null);
   const stickerIdRef = useRef<number | null>(null);
 
   const init = useCallback(async () => {
@@ -69,25 +68,10 @@ export default function ChatScreen({ route, navigation }: any) {
     } catch {}
   }, [chatId]);
 
-  async function pollAlerts() {
-    try {
-      const [chatsD, incomingD] = await Promise.all([getChats(), getIncoming()]);
-      const chats    = chatsD.success    ? (chatsD.chats      || []) : [];
-      const incoming = incomingD.success ? (incomingD.requests || []) : [];
-      const hasAlert = incoming.length > 0 ||
-        chats.some((ch: any) => ch.last_sender_id && ch.last_sender_id !== stickerIdRef.current);
-      setRadarAlert(hasAlert);
-    } catch {}
-  }
-
   useEffect(() => {
     init();
-    pollRef.current  = setInterval(pollMessages, 2000);
-    alertRef.current = setInterval(pollAlerts, 2000);
-    return () => {
-      clearInterval(pollRef.current);
-      clearInterval(alertRef.current);
-    };
+    pollRef.current = setInterval(pollMessages, 2000);
+    return () => clearInterval(pollRef.current);
   }, []);
 
   useEffect(() => {
@@ -105,7 +89,6 @@ export default function ChatScreen({ route, navigation }: any) {
       await sendMessage(chatId, t);
       const msgD = await getMessages(chatId);
       if (msgD.success) setMessages(msgD.messages || []);
-      pollAlerts();
     } catch {}
     setSending(false);
   }

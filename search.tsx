@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 import { searchParticipants, getParticipantProfile, sendRequest } from './api';
-import { TopBar } from './App';
+import { TopBar, EventContext } from './App';
 
 const WHITE    = '#ffffff';
 const BLACK    = '#000000';
@@ -25,7 +25,9 @@ const GRAY     = '#999999';
 const GRAY_BG  = '#f0f0f0';
 const MONO     = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
-export function FooterNav({ navigation, active, radarAlert = false }: { navigation: any; active: string; radarAlert?: boolean }) {
+export function FooterNav({ navigation, active, radarAlert: radarAlertProp = false }: { navigation: any; active: string; radarAlert?: boolean }) {
+  const { radarAlert: radarAlertCtx } = useContext(EventContext);
+  const radarAlert = radarAlertCtx || radarAlertProp;
   const items = [
     { label: 'radar',  screen: 'Radar'  },
     { label: 'search', screen: 'Search' },
