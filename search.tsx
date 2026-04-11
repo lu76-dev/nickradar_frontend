@@ -24,7 +24,7 @@ const GRAY     = '#999999';
 const GRAY_BG  = '#f0f0f0';
 const MONO     = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
-export function FooterNav({ navigation, active }: { navigation: any; active: string }) {
+export function FooterNav({ navigation, active, radarAlert = false }: { navigation: any; active: string; radarAlert?: boolean }) {
   const items = [
     { label: 'radar',  screen: 'Radar'  },
     { label: 'search', screen: 'Search' },
@@ -38,7 +38,10 @@ export function FooterNav({ navigation, active }: { navigation: any; active: str
           style={[fn.tab, active === item.screen && fn.tabActive]}
           onPress={() => item.screen !== active && navigation.navigate(item.screen)}
         >
-          <Text style={[fn.label, active === item.screen && fn.labelActive]}>{item.label}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[fn.label, active === item.screen && fn.labelActive]}>{item.label}</Text>
+            {item.screen === 'Radar' && radarAlert ? <View style={fn.dot} /> : null}
+          </View>
         </TouchableOpacity>
       ))}
     </View>
@@ -51,6 +54,7 @@ const fn = StyleSheet.create({
   tabActive:  { backgroundColor: BLACK },
   label:      { fontFamily: MONO, fontSize: 13, letterSpacing: 2, color: GRAY, fontWeight: 'bold' },
   labelActive:{ color: WHITE },
+  dot:       { backgroundColor: '#cc0000', borderRadius: 5, width: 10, height: 10, marginLeft: 4 },
 });
 
 export default function SearchScreen({ navigation }: any) {

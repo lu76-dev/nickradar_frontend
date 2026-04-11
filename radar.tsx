@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -24,18 +24,33 @@ const MONO      = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 type Tab = 'chats' | 'incoming' | 'outgoing' | 'history';
 
-function Badge({ count }: { count: number }) {
+function RedBadge({ count }: { count: number }) {
   if (!count) return null;
   return (
-    <View style={b.badge}>
-      <Text style={b.badgeText}>{count}</Text>
+    <View style={b.red}>
+      <Text style={b.txt}>{count}</Text>
     </View>
   );
 }
 
+function GrayBadge({ count }: { count: number }) {
+  if (!count) return null;
+  return (
+    <View style={b.gray}>
+      <Text style={b.txt}>{count}</Text>
+    </View>
+  );
+}
+
+function RedDot() {
+  return <View style={b.dot} />;
+}
+
 const b = StyleSheet.create({
-  badge:     { backgroundColor: RED, borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', marginLeft: 4, paddingHorizontal: 4 },
-  badgeText: { fontFamily: MONO, fontSize: 9, color: WHITE, fontWeight: 'bold' },
+  red:  { backgroundColor: RED,  borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', marginLeft: 4, paddingHorizontal: 4 },
+  gray: { backgroundColor: GRAY, borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', marginLeft: 4, paddingHorizontal: 4 },
+  dot:  { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 4 },
+  txt:  { fontFamily: MONO, fontSize: 9, color: WHITE, fontWeight: 'bold' },
 });
 
 
@@ -50,6 +65,7 @@ export default function RadarScreen({ navigation }: any) {
   const [timezone, setTimezone] = useState('Europe/Vienna');
   const [loading, setLoading]   = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const pollRef = useRef<any>(null);
 
   function formatDate(str: string) {
     try {
@@ -76,19 +92,18 @@ export default function RadarScreen({ navigation }: any) {
     setRefreshing(false);
   }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    pollRef.current = setInterval(() => load(true), 5000);
+    return () => clearInterval(pollRef.current);
+  }, []);
 
   async function doAnswer(id: number, status: 'yes' | 'no') {
     await answerRequest(id, status);
     load(true);
   }
 
-  const tabs: { key: Tab; label: string; count?: number }[] = [
-    { key: 'chats',    label: 'chats',    count: chats.length    },
-    { key: 'incoming', label: 'incoming', count: incoming.length },
-    { key: 'outgoing', label: 'outgoing', count: outgoing.length },
-    { key: 'history',  label: 'history'                          },
-  ];
+  const historyCount = blockedChats.length + history.filter(r => r.status === 'no').length;
 
   function renderChats() {
     if (!chats.length) return <Text style={s.empty}>no active chats</Text>;
@@ -171,14 +186,30 @@ export default function RadarScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['bottom']}>
       <TopBar navigation={navigation} />
       <View style={s.tabRow}>
-        {tabs.map(t => (
-          <TouchableOpacity key={t.key} style={[s.tabBtn, tab === t.key && s.tabBtnActive]} onPress={() => setTab(t.key)}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[s.tabLabel, tab === t.key && s.tabLabelActive]}>{t.label}</Text>
-              {t.count ? <Badge count={t.count} /> : null}
-            </View>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity style={[s.tabBtn, tab === 'chats'    && s.tabBtnActive]} onPress={() => setTab('chats')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[s.tabLabel, tab === 'chats'    && s.tabLabelActive]}>chats</Text>
+            <RedBadge count={chats.length} />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tabBtn, tab === 'incoming' && s.tabBtnActive]} onPress={() => setTab('incoming')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[s.tabLabel, tab === 'incoming' && s.tabLabelActive]}>incoming</Text>
+            <RedBadge count={incoming.length} />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tabBtn, tab === 'outgoing' && s.tabBtnActive]} onPress={() => setTab('outgoing')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[s.tabLabel, tab === 'outgoing' && s.tabLabelActive]}>outgoing</Text>
+            <GrayBadge count={outgoing.length} />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.tabBtn, tab === 'history'  && s.tabBtnActive]} onPress={() => setTab('history')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[s.tabLabel, tab === 'history'  && s.tabLabelActive]}>history</Text>
+            <GrayBadge count={historyCount} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -196,7 +227,7 @@ export default function RadarScreen({ navigation }: any) {
         </ScrollView>
       )}
 
-      <FooterNav navigation={navigation} active="Radar" />
+      <FooterNav navigation={navigation} active="Radar" radarAlert={chats.length > 0 || incoming.length > 0} />
     </SafeAreaView>
   );
 }
