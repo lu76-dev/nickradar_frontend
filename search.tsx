@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 import { searchParticipants, getParticipantProfile, sendRequest } from './api';
 import { TopBar } from './App';
 
@@ -38,7 +39,7 @@ export function FooterNav({ navigation, active, radarAlert = false }: { navigati
           style={[fn.tab, active === item.screen && fn.tabActive]}
           onPress={() => {
           if (item.screen === active) return;
-          navigation.reset({ index: 0, routes: [{ name: item.screen }] });
+          navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: item.screen }] }));
         }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
