@@ -443,6 +443,7 @@ var _exportEventId = null;
 function downloadChatExport(eventId) {
   _exportEventId = eventId;
   document.getElementById('export-reason').value = '';
+  document.getElementById('export-reason-category').value = '';
   document.getElementById('export-modal-msg').textContent = '';
   document.getElementById('export-modal-event').textContent = 'EV-'+String(eventId).padStart(8,'0');
   document.getElementById('export-modal').classList.add('active');
@@ -456,12 +457,14 @@ function closeExportModal() {
 
 async function confirmExport() {
   var reason = document.getElementById('export-reason').value.trim();
+  var reasonCategory = document.getElementById('export-reason-category').value;
   var msg = document.getElementById('export-modal-msg');
-  if (!reason) { msg.textContent = 'Reason is required.'; return; }
+  if (!reasonCategory) { msg.textContent = 'Please select a reason category.'; return; }
+  if (!reason) { msg.textContent = 'Reason details are required.'; return; }
   if (reason.length < 10) { msg.textContent = 'Please be more specific (min. 10 characters).'; return; }
   msg.textContent = '';
   try {
-    var r = await fetch(API+'/api/admin/events/'+_exportEventId+'/chat-export?reason='+encodeURIComponent(reason), {headers:{'x-admin-key':adminKey}});
+    var r = await fetch(API+'/api/admin/events/'+_exportEventId+'/chat-export?reason='+encodeURIComponent(reason)+'&reason_category='+encodeURIComponent(reasonCategory), {headers:{'x-admin-key':adminKey}});
     if (!r.ok) { var d=await r.json(); msg.textContent='Error: '+(d.error||r.status); return; }
     var blob = await r.blob();
     var url = URL.createObjectURL(blob);
@@ -486,9 +489,9 @@ async function loadAccessLog() {
     var rows = d.logs.map(function(l) {
       var evNum = l.event_id ? 'EV-'+String(l.event_id).padStart(8,'0') : '—';
       var evName = l.event_name ? ' · '+esc(l.event_name) : '';
-      return '<tr>'        +'<td style="font-size:10px;color:#999;">#'+l.id+'</td>'        +'<td style="white-space:nowrap;font-family:monospace;font-size:11px;">'+fmtUTC(l.created_at)+'</td>'        +'<td><strong>'+esc(l.action)+'</strong></td>'        +'<td>'+evNum+evName+'</td>'        +'<td style="max-width:260px;word-break:break-word;">'+esc(l.reason||'—')+'</td>'        +'<td>'+l.message_count+'</td>'        +'<td style="font-size:10px;color:#999;">'+esc(l.ip_address||'—')+'</td>'        +'<td style="font-size:10px;color:#bbb;font-family:monospace;">'+esc(l.admin_key_hash||'—')+'</td>'        +'</tr>';
+      return '<tr>'        +'<td style="font-size:10px;color:#999;">#'+l.id+'</td>'        +'<td style="white-space:nowrap;font-family:monospace;font-size:11px;">'+fmtUTC(l.created_at)+'</td>'        +'<td style="font-family:monospace;font-size:10px;color:#555;">'+esc(l.export_id||'—')+'</td>'        +'<td style="font-size:10px;font-weight:bold;">'+esc(l.reason_category||'—')+'</td>'        +'<td>'+evNum+evName+'</td>'        +'<td style="max-width:200px;word-break:break-word;">'+esc(l.reason||'—')+'</td>'        +'<td>'+l.message_count+'</td>'        +'<td style="font-family:monospace;font-size:9px;color:#bbb;max-width:120px;overflow:hidden;text-overflow:ellipsis;" title="'+esc(l.csv_hash||'')+'">'+esc((l.csv_hash||'—').slice(0,16)+'...')+'</td>'        +'<td style="font-size:10px;color:#999;">'+esc(l.ip_address||'—')+'</td>'        +'</tr>';
     }).join('');
-    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadAccessLog()">↻ Refresh</button><span class="count">'+d.logs.length+' entries</span></div>'      +'<table><thead><tr>'      +'<th>#</th><th>Timestamp (UTC)</th><th>Action</th><th>Event</th><th>Reason</th><th>Messages</th><th>IP</th><th>Key Hash</th>'      +'</tr></thead><tbody>'+(rows||'<tr><td colspan="8" class="empty">No entries.</td></tr>')+'</tbody></table>');
+    setContent('<div class="toolbar"><button class="btn-sm" onclick="loadAccessLog()">↻ Refresh</button><span class="count">'+d.logs.length+' entries</span></div>'      +'<table><thead><tr>'      +'<th>#</th><th>Timestamp (UTC)</th><th>Export ID</th><th>Category</th><th>Event</th><th>Reason</th><th>Msgs</th><th>CSV Hash</th><th>IP</th>'      +'</tr></thead><tbody>'+(rows||'<tr><td colspan="8" class="empty">No entries.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
 
@@ -567,9 +570,20 @@ async function loadInvoices() {
 <div class="export-modal-overlay" id="export-modal">
   <div class="export-modal-box">
     <div class="export-modal-title">CSV Chat Export — <span id="export-modal-event"></span></div>
-    <label class="export-modal-label">Reason for access <span style="color:#cc0000;">*</span></label>
-    <textarea class="export-modal-textarea" id="export-reason" placeholder="e.g. Court order ref. 123/2026 — Innsbruck State Prosecutor&#10;e.g. Safety incident during active event&#10;e.g. Testing / development"></textarea>
-    <div class="export-modal-hint">This reason will be permanently logged with your IP address and timestamp.</div>
+    <label class="export-modal-label">Reason Category <span style="color:#cc0000;">*</span></label>
+    <select id="export-reason-category" style="border:1px solid #ccc;padding:8px 10px;font-size:12px;width:100%;outline:none;font-family:inherit;background:#fff;margin-bottom:12px;">
+      <option value="">— select category —</option>
+      <option value="SYSTEM_TEST">System Test / Development</option>
+      <option value="SAFETY_INCIDENT">Safety Incident</option>
+      <option value="ABUSE_REPORT">Abuse Report</option>
+      <option value="LEGAL_DEFENSE">Legal Defense</option>
+      <option value="AUTHORITY_REQUEST">Authority Request / Court Order</option>
+      <option value="PLATFORM_INTEGRITY">Platform Integrity</option>
+      <option value="TECHNICAL_ABUSE">Technical Abuse / Fraud</option>
+    </select>
+    <label class="export-modal-label">Reason Details <span style="color:#cc0000;">*</span></label>
+    <textarea class="export-modal-textarea" id="export-reason" placeholder="e.g. Court order ref. 123/2026 — Innsbruck State Prosecutor&#10;e.g. Safety incident — participant report #REP-001&#10;e.g. Testing new audit functionality"></textarea>
+    <div class="export-modal-hint">Category and reason will be permanently logged with your IP address, Export ID, and CSV hash.</div>
     <div class="export-modal-msg" id="export-modal-msg"></div>
     <div class="export-modal-actions">
       <button class="btn-sm-green" onclick="confirmExport()">Export &amp; Download</button>
