@@ -38,7 +38,7 @@ export function FooterNav({ navigation, active, radarAlert = false }: { navigati
           key={item.label}
           style={[fn.tab, active === item.screen && fn.tabActive]}
           onPress={() => {
-            if (item.screen === active) return;
+            if (item.screen === active && item.screen !== 'Radar') return;
             navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: item.screen }] }));
           }}
         >

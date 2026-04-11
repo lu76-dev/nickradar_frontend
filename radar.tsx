@@ -95,6 +95,15 @@ export default function RadarScreen({ navigation }: any) {
     return () => clearInterval(pollRef.current);
   }, []);
 
+  useEffect(() => {
+    if (navigation.getState) {
+      const unsubscribe = navigation.addListener('focus', () => {
+        setTab('chats');
+      });
+      return unsubscribe;
+    }
+  }, [navigation]);
+
   async function doAnswer(id: number, status: 'yes' | 'no') {
     await answerRequest(id, status);
     load(true);
