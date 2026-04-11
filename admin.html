@@ -169,6 +169,7 @@ function showTab(name) {
 
 function setContent(html) { document.getElementById('tab-content').innerHTML=html; }
 function fmt(s) { if(!s) return '—'; var d=new Date(s); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function fmtUTC(s) { if(!s) return '—'; var d=new Date(s); return d.toISOString().slice(0,10).split('-').reverse().join('/')+' '+d.toISOString().slice(11,16)+' UTC'; }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 async function loadEventAdmins() {
@@ -485,7 +486,7 @@ async function loadAccessLog() {
     var rows = d.logs.map(function(l) {
       var evNum = l.event_id ? 'EV-'+String(l.event_id).padStart(8,'0') : '—';
       var evName = l.event_name ? ' · '+esc(l.event_name) : '';
-      return '<tr>'        +'<td style="font-size:10px;color:#999;">#'+l.id+'</td>'        +'<td style="white-space:nowrap;">'+fmt(l.created_at)+'</td>'        +'<td><strong>'+esc(l.action)+'</strong></td>'        +'<td>'+evNum+evName+'</td>'        +'<td style="max-width:260px;word-break:break-word;">'+esc(l.reason||'—')+'</td>'        +'<td>'+l.message_count+'</td>'        +'<td style="font-size:10px;color:#999;">'+esc(l.ip_address||'—')+'</td>'        +'<td style="font-size:10px;color:#bbb;font-family:monospace;">'+esc(l.admin_key_hash||'—')+'</td>'        +'</tr>';
+      return '<tr>'        +'<td style="font-size:10px;color:#999;">#'+l.id+'</td>'        +'<td style="white-space:nowrap;font-family:monospace;font-size:11px;">'+fmtUTC(l.created_at)+'</td>'        +'<td><strong>'+esc(l.action)+'</strong></td>'        +'<td>'+evNum+evName+'</td>'        +'<td style="max-width:260px;word-break:break-word;">'+esc(l.reason||'—')+'</td>'        +'<td>'+l.message_count+'</td>'        +'<td style="font-size:10px;color:#999;">'+esc(l.ip_address||'—')+'</td>'        +'<td style="font-size:10px;color:#bbb;font-family:monospace;">'+esc(l.admin_key_hash||'—')+'</td>'        +'</tr>';
     }).join('');
     setContent('<div class="toolbar"><button class="btn-sm" onclick="loadAccessLog()">↻ Refresh</button><span class="count">'+d.logs.length+' entries</span></div>'      +'<table><thead><tr>'      +'<th>#</th><th>Timestamp (UTC)</th><th>Action</th><th>Event</th><th>Reason</th><th>Messages</th><th>IP</th><th>Key Hash</th>'      +'</tr></thead><tbody>'+(rows||'<tr><td colspan="8" class="empty">No entries.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
