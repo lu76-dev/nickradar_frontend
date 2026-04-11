@@ -444,6 +444,7 @@ function downloadChatExport(eventId) {
   _exportEventId = eventId;
   document.getElementById('export-reason').value = '';
   document.getElementById('export-reason-category').value = '';
+  document.getElementById('export-reference-id').value = '';
   document.getElementById('export-modal-msg').textContent = '';
   document.getElementById('export-modal-event').textContent = 'EV-'+String(eventId).padStart(8,'0');
   document.getElementById('export-modal').classList.add('active');
@@ -464,7 +465,10 @@ async function confirmExport() {
   if (reason.length < 10) { msg.textContent = 'Please be more specific (min. 10 characters).'; return; }
   msg.textContent = '';
   try {
-    var r = await fetch(API+'/api/admin/events/'+_exportEventId+'/chat-export?reason='+encodeURIComponent(reason)+'&reason_category='+encodeURIComponent(reasonCategory), {headers:{'x-admin-key':adminKey}});
+    var referenceId = document.getElementById('export-reference-id').value.trim();
+    var url = API+'/api/admin/events/'+_exportEventId+'/chat-export?reason='+encodeURIComponent(reason)+'&reason_category='+encodeURIComponent(reasonCategory);
+    if (referenceId) url += '&reference_id='+encodeURIComponent(referenceId);
+    var r = await fetch(url, {headers:{'x-admin-key':adminKey}});
     if (!r.ok) { var d=await r.json(); msg.textContent='Error: '+(d.error||r.status); return; }
     var blob = await r.blob();
     var url = URL.createObjectURL(blob);
@@ -583,6 +587,8 @@ async function loadInvoices() {
     </select>
     <label class="export-modal-label">Reason Details <span style="color:#cc0000;">*</span></label>
     <textarea class="export-modal-textarea" id="export-reason" placeholder="e.g. Court order ref. 123/2026 — Innsbruck State Prosecutor&#10;e.g. Safety incident — participant report #REP-001&#10;e.g. Testing new audit functionality"></textarea>
+    <label class="export-modal-label" style="margin-top:10px;">Reference ID <span style="font-size:10px;color:#999;">(optional)</span></label>
+    <input type="text" id="export-reference-id" style="border:1px solid #ccc;padding:8px 10px;font-size:12px;width:100%;outline:none;font-family:inherit;margin-bottom:4px;" placeholder="e.g. Court order 123/2026 · REP-001 · Case ref." />
     <div class="export-modal-hint">Category and reason will be permanently logged with your IP address, Export ID, and CSV hash.</div>
     <div class="export-modal-msg" id="export-modal-msg"></div>
     <div class="export-modal-actions">
