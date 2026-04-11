@@ -63,6 +63,7 @@ export default function RadarScreen({ navigation }: any) {
   const [history, setHistory]         = useState<any[]>([]);
   const [blockedChats, setBlockedChats] = useState<any[]>([]);
   const [timezone, setTimezone] = useState('Europe/Vienna');
+  const [myStickerId, setMyStickerId] = useState<number | null>(null);
   const [loading, setLoading]   = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const pollRef = useRef<any>(null);
@@ -82,6 +83,7 @@ export default function RadarScreen({ navigation }: any) {
     try {
       const [c, i, o, h, bc, meD] = await Promise.all([getChats(), getIncoming(), getOutgoing(), getHistory(), getBlockedChats(), getMe()]);
       if (meD.success && meD.participant?.timezone) setTimezone(meD.participant.timezone);
+      if (meD.success && meD.participant?.sticker_id) setMyStickerId(meD.participant.sticker_id);
       if (c.success) setChats(c.chats || []);
       if (i.success) setIncoming(i.requests || []);
       if (o.success) setOutgoing(o.requests || []);
@@ -189,7 +191,7 @@ export default function RadarScreen({ navigation }: any) {
         <TouchableOpacity style={[s.tabBtn, tab === 'chats'    && s.tabBtnActive]} onPress={() => setTab('chats')}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[s.tabLabel, tab === 'chats'    && s.tabLabelActive]}>chats</Text>
-            <RedBadge count={chats.length} />
+            <RedBadge count={chats.filter(ch => ch.last_sender_id && ch.last_sender_id !== myStickerId).length} />
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tabBtn, tab === 'incoming' && s.tabBtnActive]} onPress={() => setTab('incoming')}>
@@ -227,7 +229,7 @@ export default function RadarScreen({ navigation }: any) {
         </ScrollView>
       )}
 
-      <FooterNav navigation={navigation} active="Radar" radarAlert={chats.length > 0 || incoming.length > 0} />
+      <FooterNav navigation={navigation} active="Radar" radarAlert={chats.filter(ch => ch.last_sender_id && ch.last_sender_id !== myStickerId).length > 0 || incoming.length > 0} />
     </SafeAreaView>
   );
 }
