@@ -919,6 +919,16 @@ async function doDeleteAccount() {
     if (d.success) { doLogout(); } else alert('Error: '+d.error);
   } catch(e) { alert('Connection error.'); }
 }
+
+  function printStickers(btn) {
+    var eventId = btn.getAttribute('data-eid');
+    var token = btn.getAttribute('data-tok');
+    var fee = prompt('Participant fee (optional)\nLeave empty = no price on sticker\nExample: EUR 2.00  /  FREE  /  CHF 5', '');
+    if (fee === null) return;
+    var url = API+'/api/events/'+eventId+'/print?token='+token;
+    if (fee.trim()) url += '&fee='+encodeURIComponent(fee.trim());
+    window.open(url, '_blank');
+  }
 </script>
 </body>
 </html>
