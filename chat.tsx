@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getMe, getMessages, sendMessage, blockChat, sendReport } from './api';
+import { getMe, getMessages, sendMessage, blockChat, sendReport, checkReported } from './api';
 import { TopBar } from './App';
 
 const WHITE = '#ffffff';
@@ -42,15 +42,16 @@ export default function ChatScreen({ route, navigation }: any) {
 
   const loadMessages = useCallback(async () => {
     try {
-      const [meD, msgD] = await Promise.all([getMe(), getMessages(chatId)]);
+      const [meD, msgD, repD] = await Promise.all([getMe(), getMessages(chatId), checkReported(nickname)]);
       if (meD.success) setMe(meD.participant);
       if (msgD.success) {
         setMessages(msgD.messages || []);
         setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 100);
       }
+      if (repD.success && repD.reported) setReported(true);
     } catch {}
     setLoading(false);
-  }, [chatId]);
+  }, [chatId, nickname]);
 
   useEffect(() => {
     loadMessages();
