@@ -109,15 +109,21 @@ export default function RadarScreen({ navigation }: any) {
 
   function renderChats() {
     if (!chats.length) return <Text style={s.empty}>no active chats</Text>;
-    return chats.map(c => (
-      <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname })}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.nick}>{c.other_nickname}</Text>
-          {c.last_message ? <Text style={s.sub} numberOfLines={1}>{c.last_message}</Text> : null}
-        </View>
-        <View style={s.arrowWrap}><Text style={s.arrow}>›</Text></View>
-      </TouchableOpacity>
-    ));
+    return chats.map(c => {
+      const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
+      return (
+        <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname })}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={s.nick}>{c.other_nickname}</Text>
+              {hasAlert ? <View style={s.chatDot} /> : null}
+            </View>
+            {c.last_message ? <Text style={s.sub} numberOfLines={1}>{c.last_message}</Text> : null}
+          </View>
+          <View style={s.arrowWrap}><Text style={s.arrow}>›</Text></View>
+        </TouchableOpacity>
+      );
+    });
   }
 
   function renderIncoming() {
@@ -257,4 +263,5 @@ const s = StyleSheet.create({
   noBtnText:    { fontFamily: MONO, fontSize: 12, color: '#666', letterSpacing: 1 },
   statusPending:{ fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
   statusLabel:  { fontFamily: MONO, fontSize: 11, letterSpacing: 1 },
+  chatDot:      { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 8, marginBottom: 2 },
 });
