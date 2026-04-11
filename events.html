@@ -83,9 +83,8 @@
     .eas-box { border: 1px solid #ddd; padding: 6px 12px; min-width: 210px; flex-shrink: 0; }
     .eas-line { font-size: 10px; letter-spacing: 1px; padding: 2px 0; white-space: nowrap; font-family: 'Share Tech Mono', 'Courier New', monospace; }
 
-    .participant-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #ddd; max-width: 760px; }
+    .participant-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); border: 1px solid #ddd; }
     .participant-cell { border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 10px 12px; min-height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 3px; position: relative; }
-    .participant-cell:nth-child(3n) { border-right: none; }
     .participant-cell.empty-cell { background: #fafafa; }
     .participant-cell.inactive-cell { background: #f5f5f5; opacity: 0.6; }
     .participant-nick { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
