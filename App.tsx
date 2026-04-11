@@ -57,7 +57,7 @@ export function TopBar({ navigation }: { navigation?: any }) {
   return (
     <View style={ts.bar}>
       <Image source={{ uri: 'https://app.nickradar.com/nr_logo.png' }} style={ts.logo} resizeMode="contain" />
-      <Text style={ts.name} numberOfLines={1}>EVENT: {event.event_name}</Text>
+      <Text style={ts.nameLabel}>EVENT: </Text><Text style={ts.name} numberOfLines={1}>{event.event_name}</Text>
       <Text style={[ts.countdown, isUrgent && ts.urgent, isEnded && ts.ended]}>
         {isEnded ? 'ENDED' : timeStr}
       </Text>
@@ -73,7 +73,9 @@ export function TopBar({ navigation }: { navigation?: any }) {
 const ts = StyleSheet.create({
   bar:       { backgroundColor: WHITE, borderBottomWidth: 2, borderBottomColor: BLACK, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
   logo:      { width: 22, height: 22, flexShrink: 0 },
+  nameLabel: { fontFamily: MONO, fontSize: 12, fontWeight: 'normal', letterSpacing: 1, color: GRAY, flexShrink: 0 },
   name:      { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', letterSpacing: 1, color: BLACK, flex: 1 },
+  namePrefix:{ fontWeight: 'normal', color: GRAY },
   countdown: { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', letterSpacing: 1, color: GREEN, flexShrink: 0 },
   urgent:    { color: RED },
   ended:     { color: RED },
