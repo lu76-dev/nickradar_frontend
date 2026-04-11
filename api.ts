@@ -51,6 +51,15 @@ export async function getParticipantProfile(nickname: string) {
   return r.json();
 }
 
+export async function startChat(target_nickname: string, message: string) {
+  const r = await fetch(`${API}/api/chats/start`, {
+    method: 'POST',
+    headers: headers() as any,
+    body: JSON.stringify({ target_nickname, message }),
+  });
+  return r.json();
+}
+
 export async function sendRequest(target_nickname: string, message: string) {
   const r = await fetch(`${API}/api/requests`, {
     method: 'POST',
@@ -108,20 +117,6 @@ export async function blockChat(chatId: number) {
     method: 'PUT',
     headers: headers() as any,
   });
-  return r.json();
-}
-
-export async function sendReport(reported_nickname: string, reason: string, details: string) {
-  const r = await fetch(`${API}/api/reports`, {
-    method: 'POST',
-    headers: headers() as any,
-    body: JSON.stringify({ reported_nickname, reason, details }),
-  });
-  return r.json();
-}
-
-export async function checkReported(nickname: string) {
-  const r = await fetch(`${API}/api/reports/check?nickname=${encodeURIComponent(nickname)}`, { headers: headers() as any });
   return r.json();
 }
 

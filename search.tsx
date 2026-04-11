@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
-import { searchParticipants, getParticipantProfile, sendRequest } from './api';
+import { searchParticipants, getParticipantProfile, startChat } from './api';
 import { TopBar, EventContext } from './App';
 
 const WHITE    = '#ffffff';
@@ -95,12 +95,16 @@ export default function SearchScreen({ navigation }: any) {
 
   async function doSend() {
     if (!message.trim() || message.length < 2) { setSendResult('Min. 2 characters.'); return; }
-    if (message.length > 200) { setSendResult('Max. 200 characters.'); return; }
     setSending(true);
     try {
-      const d = await sendRequest(profile.nickname, message.trim());
-      if (d.success) { setSendResult('Request sent!'); setMessage(''); }
-      else setSendResult(d.error || 'Error.');
+      const d = await startChat(profile.nickname, message.trim());
+      if (d.success) {
+        setProfile(null);
+        setMessage('');
+        navigation.navigate('Chat', { chatId: d.chat_id, nickname: profile.nickname });
+      } else {
+        setSendResult(d.error || 'Error.');
+      }
     } catch { setSendResult('Connection error.'); }
     setSending(false);
   }
@@ -158,7 +162,7 @@ export default function SearchScreen({ navigation }: any) {
                   style={s.requestInput}
                   value={message}
                   onChangeText={setMessage}
-                  placeholder="write a message... (2–200 chars)"
+                  placeholder="write your first message..."
                   placeholderTextColor={GRAY}
                   multiline
                   maxLength={200}
@@ -169,7 +173,7 @@ export default function SearchScreen({ navigation }: any) {
                   </Text>
                 ) : null}
                 <TouchableOpacity style={s.sendBtn} onPress={doSend} disabled={sending}>
-                  {sending ? <ActivityIndicator color={BLACK} /> : <Text style={s.sendBtnText}>SEND</Text>}
+                  {sending ? <ActivityIndicator color={BLACK} /> : <Text style={s.sendBtnText}>START CHAT</Text>}
                 </TouchableOpacity>
               </>
             )}

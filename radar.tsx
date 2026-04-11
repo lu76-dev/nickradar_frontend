@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getChats, getIncoming, getOutgoing, getHistory, getBlockedChats, answerRequest, getMe } from './api';
+import { getChats, getHistory, getBlockedChats, getMe } from './api';
 import { FooterNav } from './search';
 import { TopBar, EventContext } from './App';
 
@@ -21,7 +21,7 @@ const GRAY      = '#999999';
 const RED       = '#cc0000';
 const MONO      = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
-type Tab = 'chats' | 'incoming' | 'outgoing' | 'history';
+type Tab = 'chats' | 'history';
 
 function RedBadge({ count }: { count: number }) {
   if (!count) return null;
@@ -54,8 +54,6 @@ export default function RadarScreen({ navigation }: any) {
   const { setRadarAlert } = useContext(EventContext);
   const [tab, setTab]           = useState<Tab>('chats');
   const [chats, setChats]       = useState<any[]>([]);
-  const [incoming, setIncoming] = useState<any[]>([]);
-  const [outgoing, setOutgoing] = useState<any[]>([]);
   const [history, setHistory]         = useState<any[]>([]);
   const [blockedChats, setBlockedChats] = useState<any[]>([]);
   const [timezone, setTimezone] = useState('Europe/Vienna');
@@ -77,12 +75,10 @@ export default function RadarScreen({ navigation }: any) {
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [c, i, o, h, bc, meD] = await Promise.all([getChats(), getIncoming(), getOutgoing(), getHistory(), getBlockedChats(), getMe()]);
+      const [c, h, bc, meD] = await Promise.all([getChats(), getHistory(), getBlockedChats(), getMe()]);
       if (meD.success && meD.participant?.timezone) setTimezone(meD.participant.timezone);
       if (meD.success && meD.participant?.sticker_id) setMyStickerId(meD.participant.sticker_id);
       if (c.success) setChats(c.chats || []);
-      if (i.success) setIncoming(i.requests || []);
-      if (o.success) setOutgoing(o.requests || []);
       if (h.success) setHistory(h.requests || []);
       if (bc.success) setBlockedChats(bc.chats || []);
     } catch {}
@@ -105,12 +101,7 @@ export default function RadarScreen({ navigation }: any) {
     }
   }, [navigation]);
 
-  async function doAnswer(id: number, status: 'yes' | 'no') {
-    await answerRequest(id, status);
-    load(true);
-  }
-
-  const historyCount = blockedChats.length + history.filter(r => r.status === 'no').length;
+  const historyCount = blockedChats.length + history.length;
 
   function renderChats() {
     if (!chats.length) return <Text style={s.empty}>no active chats</Text>;
@@ -129,39 +120,6 @@ export default function RadarScreen({ navigation }: any) {
         </TouchableOpacity>
       );
     });
-  }
-
-  function renderIncoming() {
-    if (!incoming.length) return <Text style={s.empty}>no incoming requests</Text>;
-    return incoming.map(r => (
-      <View key={r.id} style={s.row}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.nick}>{r.seeker_nickname}</Text>
-          <Text style={s.message} numberOfLines={2}>{r.message}</Text>
-        </View>
-        <View style={s.answerBtns}>
-          <TouchableOpacity style={s.yesBtn} onPress={() => doAnswer(r.id, 'yes')}>
-            <Text style={s.yesBtnText}>YES</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.noBtn} onPress={() => doAnswer(r.id, 'no')}>
-            <Text style={s.noBtnText}>NO</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    ));
-  }
-
-  function renderOutgoing() {
-    if (!outgoing.length) return <Text style={s.empty}>no outgoing requests</Text>;
-    return outgoing.map(r => (
-      <View key={r.id} style={s.row}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.nick}>{r.target_nickname}</Text>
-          <Text style={s.message} numberOfLines={2}>{r.message}</Text>
-        </View>
-        <Text style={s.statusPending}>pending</Text>
-      </View>
-    ));
   }
 
   function renderHistory() {
@@ -199,27 +157,15 @@ export default function RadarScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['bottom']}>
       <TopBar navigation={navigation} />
       <View style={s.tabRow}>
-        <TouchableOpacity style={[s.tabBtn, tab === 'chats'    && s.tabBtnActive]} onPress={() => setTab('chats')}>
+        <TouchableOpacity style={[s.tabBtn, tab === 'chats' && s.tabBtnActive]} onPress={() => setTab('chats')}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.tabLabel, tab === 'chats'    && s.tabLabelActive]}>chats</Text>
+            <Text style={[s.tabLabel, tab === 'chats' && s.tabLabelActive]}>chats</Text>
             <RedBadge count={chats.filter(ch => ch.last_sender_id && ch.last_sender_id !== myStickerId).length} />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.tabBtn, tab === 'incoming' && s.tabBtnActive]} onPress={() => setTab('incoming')}>
+        <TouchableOpacity style={[s.tabBtn, tab === 'history' && s.tabBtnActive]} onPress={() => setTab('history')}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.tabLabel, tab === 'incoming' && s.tabLabelActive]}>incoming</Text>
-            <RedBadge count={incoming.length} />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tabBtn, tab === 'outgoing' && s.tabBtnActive]} onPress={() => setTab('outgoing')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.tabLabel, tab === 'outgoing' && s.tabLabelActive]}>outgoing</Text>
-            <GrayBadge count={outgoing.length} />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tabBtn, tab === 'history'  && s.tabBtnActive]} onPress={() => setTab('history')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.tabLabel, tab === 'history'  && s.tabLabelActive]}>history</Text>
+            <Text style={[s.tabLabel, tab === 'history' && s.tabLabelActive]}>history</Text>
             <GrayBadge count={historyCount} />
           </View>
         </TouchableOpacity>
@@ -233,8 +179,6 @@ export default function RadarScreen({ navigation }: any) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={GREEN} />}
         >
           {tab === 'chats'    && renderChats()}
-          {tab === 'incoming' && renderIncoming()}
-          {tab === 'outgoing' && renderOutgoing()}
           {tab === 'history'  && renderHistory()}
           <View style={{ height: 20 }} />
         </ScrollView>
@@ -261,12 +205,6 @@ const s = StyleSheet.create({
   message:      { fontFamily: MONO, fontSize: 11, color: '#555', marginTop: 2, lineHeight: 16 },
   arrowWrap:    { paddingLeft: 12 },
   arrow:        { fontFamily: MONO, fontSize: 22, color: GRAY },
-  answerBtns:   { flexDirection: 'row', gap: 8 },
-  yesBtn:       { backgroundColor: GREEN, paddingHorizontal: 14, paddingVertical: 8 },
-  yesBtnText:   { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', color: BLACK, letterSpacing: 1 },
-  noBtn:        { backgroundColor: WHITE, borderWidth: 1, borderColor: '#ccc', paddingHorizontal: 14, paddingVertical: 8 },
-  noBtnText:    { fontFamily: MONO, fontSize: 12, color: '#666', letterSpacing: 1 },
-  statusPending:{ fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
   statusLabel:  { fontFamily: MONO, fontSize: 11, letterSpacing: 1 },
   chatDot:      { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 8, marginBottom: 2 },
 });
