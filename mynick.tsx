@@ -104,7 +104,7 @@ export default function MyNickScreen({ navigation }: any) {
             </View>
           ) : (
             <TouchableOpacity style={s.pickBtn} onPress={pickPhoto}>
-              <Text style={s.pickBtnText}>+ add photo</Text>
+              <Text style={s.pickBtnText}>+ add photo (optional)</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -144,7 +144,7 @@ const s = StyleSheet.create({
   safe:         { flex: 1, backgroundColor: WHITE },
   loader:       { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll:       { padding: 24 },
-  nickRow:      { marginBottom: 32, alignItems: 'center', paddingVertical: 20, borderBottomWidth: 2, borderBottomColor: BLACK },
+  nickRow:      { marginBottom: 32, alignItems: 'center', paddingVertical: 20 },
   nickLabel:    { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 3, marginBottom: 8 },
   nick:         { fontFamily: MONO, fontSize: 28, fontWeight: 'bold', letterSpacing: 4, color: BLACK },
   section:      { marginBottom: 24 },
