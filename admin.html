@@ -446,7 +446,7 @@ async function loadParticipantList(eventId) {
           var connList=connMap[s.id],uid='conn-'+s.id;
           connHtml='<div style="font-size:9px;color:#bbb;border-top:1px solid #eee;margin-top:4px;padding-top:4px;">'
             +connList.length+' connection'+(connList.length>1?'s':'')+' → '
-            +'<span style="color:#000;text-decoration:underline;cursor:pointer;" onclick="document.getElementById(''+uid+'').style.display=document.getElementById(''+uid+'').style.display==='none'?'block':'none'">show</span>'
+            +'<span style="color:#000;text-decoration:underline;cursor:pointer;" onclick="var el=document.getElementById(&quot;'+uid+'&quot;);el.style.display=el.style.display===&quot;none&quot;?&quot;block&quot;:&quot;none&quot;">show</span>'
             +'<div id="'+uid+'" style="display:none;margin-top:3px;line-height:1.8;">'+connList.map(function(n){return '↔ '+n;}).join('<br>')+'</div></div>';
         }
         html+='<div class="participant-cell'+(isInactive?' inactive-cell':'')+'">'+invBtn
