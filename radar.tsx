@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -109,12 +110,16 @@ export default function RadarScreen({ navigation }: any) {
       const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
       return (
         <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname })}>
-          <View style={{ flex: 1 }}>
+          {c.other_photo
+            ? <Image source={{ uri: c.other_photo }} style={s.avatar} />
+            : <View style={s.avatarPlaceholder}><Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text></View>
+          }
+          <View style={{ flex: 1, marginLeft: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={s.nick}>{c.other_nickname}</Text>
               {hasAlert ? <View style={s.chatDot} /> : null}
             </View>
-            {c.last_message ? <Text style={s.sub} numberOfLines={1}>{c.last_message}</Text> : null}
+            {c.other_slogan ? <Text style={s.sub} numberOfLines={1}>{c.other_slogan}</Text> : null}
           </View>
           <View style={s.arrowWrap}><Text style={s.arrow}>›</Text></View>
         </TouchableOpacity>
@@ -207,4 +212,7 @@ const s = StyleSheet.create({
   arrow:        { fontFamily: MONO, fontSize: 22, color: GRAY },
   statusLabel:  { fontFamily: MONO, fontSize: 11, letterSpacing: 1 },
   chatDot:      { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 8, marginBottom: 2 },
+  avatar:       { width: 40, height: 40, borderRadius: 20, flexShrink: 0 },
+  avatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  avatarLetter: { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', color: GRAY },
 });
