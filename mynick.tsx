@@ -133,6 +133,13 @@ export default function MyNickScreen({ navigation }: any) {
         </TouchableOpacity>
 
       </ScrollView>
+      <View style={s.appFooter}>
+        <View style={s.appFooterRow}>
+          <Image source={{ uri: 'https://app.nickradar.com/nr_logo.png' }} style={s.footerLogo} resizeMode="contain" />
+          <Text style={s.appFooterText}>Event powered by nickradar.com</Text>
+        </View>
+        <Text style={s.appVersion}>v8.16.0</Text>
+      </View>
       <FooterNav navigation={navigation} active="MyNick" />
     </SafeAreaView>
   );
@@ -160,4 +167,9 @@ const s = StyleSheet.create({
   saveBtn:      { backgroundColor: GREEN, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: BLACK },
   saveBtnText:  { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', color: BLACK, letterSpacing: 3 },
   divider:      { height: 1, backgroundColor: '#eee', marginVertical: 32 },
+  appFooter:    { borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingHorizontal: 20, paddingVertical: 8, alignItems: 'center' },
+  appFooterRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
+  footerLogo:   { width: 14, height: 14, opacity: 0.4 },
+  appFooterText:{ fontFamily: MONO, fontSize: 9, color: '#ccc', letterSpacing: 1 },
+  appVersion:   { fontFamily: MONO, fontSize: 8, color: '#ddd', letterSpacing: 1 },
 });
