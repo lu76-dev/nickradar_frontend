@@ -40,16 +40,6 @@ self.addEventListener('activate', (event) => {
   );
   // Take control immediately
   self.clients.claim();
-  
-  // Notify all clients about update
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'SW_UPDATED',
-        version: CACHE_VERSION
-      });
-    });
-  });
 });
 
 // Fetch - network first for API, cache first for static
@@ -83,9 +73,12 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Listen for skip waiting message from client
+// Listen for messages from client
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.source.postMessage({ type: 'SW_VERSION', version: CACHE_VERSION });
   }
 });

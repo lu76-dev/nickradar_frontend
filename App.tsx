@@ -111,13 +111,29 @@ export default function App() {
   }, [event]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      const handler = (e: any) => {
-        if (e.data?.type === 'SW_UPDATED') setUpdateBanner(e.data.version);
-      };
-      navigator.serviceWorker.addEventListener('message', handler);
-      return () => navigator.serviceWorker.removeEventListener('message', handler);
-    }
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    let knownVersion: string | null = null;
+    const check = async () => {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if (!reg.active) return;
+        reg.active.postMessage({ type: 'GET_VERSION' });
+      } catch {}
+    };
+    const handler = (e: any) => {
+      if (e.data?.type === 'SW_VERSION') {
+        const v = e.data.version;
+        if (knownVersion === null) { knownVersion = v; }
+        else if (knownVersion !== v) { setUpdateBanner(v); }
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    check();
+    const id = setInterval(check, 5000);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handler);
+      clearInterval(id);
+    };
   }, []);
 
   useEffect(() => {
