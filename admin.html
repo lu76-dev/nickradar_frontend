@@ -414,17 +414,21 @@ async function loadParticipantList(eventId, eventName) {
     var r=await fetch(API+'/api/admin/events/'+eventId+'/stickers',{headers:{'x-admin-key':adminKey}});
     var d=await r.json();
     if (!d.success){setContent('<div class="empty">Error.</div>');return;}
-    var stickers=d.stickers, perRow=3, total=stickers.length;
-    var filled=total%perRow===0?total:total+(perRow-(total%perRow));
+    var stickers=d.stickers, total=stickers.length;
+    var perRow=3, filled=total%perRow===0?total:total+(perRow-(total%perRow));
     var html='<button class="back-btn" onclick="loadEvents()">← Back to Events</button>'
-      +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">'+esc(eventName)+'</div>'
+      +'<div style="margin-bottom:20px;">'
+      +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:6px;">'+esc(eventName)+'</div>'
+      +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+total+'</strong></div>'
+      +'<button class="btn-sm" onclick="_loadPL('+eventId+')">↻ Refresh</button>'
+      +'</div>'
       +'<div class="participant-list-grid">';
     for(var i=0;i<filled;i++){
       if(i<stickers.length){
         var s=stickers[i], isInactive=s.status==='invalidated'||s.status==='blocked';
         var sLabel={unused:'not activated',active:'active',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
         var sClass=s.status==='active'?'participant-status online':'participant-status';
-        var invBtn=s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="invalidateSticker('+s.id+','+eventId+',\''+esc(eventName)+'\')" title="Invalidate">✕</button>':'';
+        var invBtn=s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="invalidateSticker('+s.id+','+eventId+')" title="Invalidate">✕</button>':'';
         html+='<div class="participant-cell'+(isInactive?' inactive-cell':'')+'">'+invBtn
           +'<div class="participant-nick">'+esc(s.nickname)+'</div>'
           +'<div class="participant-code">'+s.code+'</div>'
@@ -436,9 +440,9 @@ async function loadParticipantList(eventId, eventName) {
   } catch(e){setContent('<div class="empty">Connection error.</div>');}
 }
 
-async function invalidateSticker(stickerId, eventId, eventName) {
+async function invalidateSticker(stickerId, eventId) {
   if(!confirm('Invalidate this sticker?\nParticipant will be logged out.')) return;
-  try { var r=await fetch(API+'/api/admin/stickers/'+stickerId+'/invalidate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) loadParticipantList(eventId,eventName); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
+  try { var r=await fetch(API+'/api/admin/stickers/'+stickerId+'/invalidate',{method:'POST',headers:{'x-admin-key':adminKey}}); var d=await r.json(); if(d.success) _loadPL(eventId); else alert('Error: '+d.error); } catch(e){alert('Connection error.');}
 }
 
 var _exportEventId = null;
