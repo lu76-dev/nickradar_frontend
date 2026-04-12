@@ -752,11 +752,14 @@ async function loadParticipantList(eventId) {
         }
       } catch(ex){}
     }
-    var startStr=new Date(e.start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:e.timezone||'Europe/Vienna'});
-    var endsStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:e.timezone||'Europe/Vienna'});
+    var _tz=e.timezone||'Europe/Vienna';
+    var _tzAbbrs={'Europe/Vienna':'CET','Europe/Berlin':'CET','Europe/London':'GMT','Europe/Paris':'CET','Europe/Rome':'CET','Europe/Madrid':'CET','Europe/Amsterdam':'CET','Europe/Zurich':'CET','Europe/Warsaw':'CET','Europe/Stockholm':'CET','Europe/Helsinki':'EET','Europe/Athens':'EET','Europe/Lisbon':'WET','Europe/Moscow':'MSK','Europe/Istanbul':'TRT','America/New_York':'ET','America/Chicago':'CT','America/Denver':'MT','America/Los_Angeles':'PT','America/Toronto':'ET','America/Vancouver':'PT','America/Mexico_City':'CT','America/Sao_Paulo':'BRT','America/Buenos_Aires':'ART','America/Bogota':'COT','Asia/Dubai':'GST','Asia/Kolkata':'IST','Asia/Bangkok':'ICT','Asia/Singapore':'SGT','Asia/Shanghai':'CST','Asia/Tokyo':'JST','Asia/Seoul':'KST','Australia/Sydney':'AEST','Pacific/Auckland':'NZST','Africa/Cairo':'EET','Africa/Johannesburg':'SAST','Africa/Lagos':'WAT','Africa/Nairobi':'EAT'};
+    var _tzLabel=_tzAbbrs[_tz]||_tz;
+    var startStr=new Date(e.start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:_tz});
+    var endsStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:_tz});
     var html='<div style="margin-bottom:20px;">'
       +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:6px;">'+e.event_name+'</div>'
-      +'<div style="font-size:11px;color:#999;letter-spacing:1px;margin-bottom:8px;">'+startStr+' – '+endsStr+'</div>'
+      +'<div style="font-size:11px;color:#999;letter-spacing:1px;margin-bottom:8px;">'+startStr+' – '+endsStr+' <span style="color:#bbb;font-size:10px;">('+_tzLabel+')</span></div>'
       +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+e.sticker_count+'</strong> · Activated: <strong>'+e.activated_count+'</strong> · Connections: <strong>'+e.connection_count+'</strong></div>'
       +'<button class="btn-outline" data-eid="'+eventId+'" data-tok="'+token+'" onclick="printStickers(this)">🖨 Print Stickers</button>'      +'<a href="'+API+'/api/events/'+eventId+'/print-back?token='+token+'" target="_blank" style="text-decoration:none;margin-left:6px;"><button class="btn-outline">🖨 Print Back Side</button></a>'
       +'<button class="btn-outline" onclick="loadParticipantList('+eventId+')" style="margin-left:8px;">↻ Refresh</button>'
