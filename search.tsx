@@ -2,7 +2,6 @@ import React, { useState, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -20,7 +19,6 @@ import { TopBar, EventContext } from './App';
 const WHITE    = '#ffffff';
 const BLACK    = '#000000';
 const GREEN    = '#00ff41';
-const GREEN_DIM = '#2a6a2a';
 const GRAY     = '#999999';
 const GRAY_BG  = '#f0f0f0';
 const MONO     = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
@@ -101,7 +99,7 @@ export default function SearchScreen({ navigation }: any) {
       if (d.success) {
         setProfile(null);
         setMessage('');
-        navigation.navigate('Chat', { chatId: d.chat_id, nickname: profile.nickname });
+        navigation.navigate('Chat', { chatId: d.chat_id, nickname: profile.nickname, photo: profile.photo_url || null, intro: profile.intro || null });
       } else {
         setSendResult(d.error || 'Error.');
       }
@@ -168,7 +166,7 @@ export default function SearchScreen({ navigation }: any) {
                   style={s.requestInput}
                   value={message}
                   onChangeText={setMessage}
-                  placeholder="write your first message..."
+                  placeholder="write a message..."
                   placeholderTextColor={GRAY}
                   multiline
                   maxLength={200}
@@ -179,7 +177,7 @@ export default function SearchScreen({ navigation }: any) {
                   </Text>
                 ) : null}
                 <TouchableOpacity style={s.sendBtn} onPress={doSend} disabled={sending}>
-                  {sending ? <ActivityIndicator color={BLACK} /> : <Text style={s.sendBtnText}>START CHAT</Text>}
+                  {sending ? <ActivityIndicator color={BLACK} /> : <Text style={s.sendBtnText}>CHAT</Text>}
                 </TouchableOpacity>
               </>
             )}
@@ -209,7 +207,6 @@ const s = StyleSheet.create({
   profileNick:         { fontFamily: MONO, fontSize: 18, fontWeight: 'bold', letterSpacing: 2, color: BLACK, marginBottom: 4 },
   profileIntro:       { fontFamily: MONO, fontSize: 11, color: GRAY, letterSpacing: 1 },
   divider:             { height: 1, backgroundColor: '#eee', marginVertical: 16 },
-  requestLabel:        { fontFamily: MONO, fontSize: 10, letterSpacing: 3, color: GRAY, marginBottom: 8 },
   requestInput:        { fontFamily: MONO, fontSize: 13, color: BLACK, borderWidth: 1, borderColor: '#ccc', padding: 10, minHeight: 80, marginBottom: 8 },
   sendResult:          { fontFamily: MONO, fontSize: 11, color: '#cc0000', marginBottom: 8, letterSpacing: 1 },
   sendBtn:             { backgroundColor: BLACK, paddingVertical: 12, alignItems: 'center' },
