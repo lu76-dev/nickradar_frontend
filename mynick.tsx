@@ -136,8 +136,8 @@ export default function MyNickScreen({ navigation }: any) {
         <View style={s.eventInfo}>
           <Text style={s.eventInfoLine}>you joined: <Text style={s.eventInfoVal}>{event.event_name}</Text></Text>
           <Text style={s.eventInfoLine}>by: <Text style={s.eventInfoVal}>{event.org_name || '—'}</Text></Text>
-          <Text style={s.eventInfoLine}>from: <Text style={s.eventInfoVal}>{event.start_at ? new Date(event.start_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }) : '—'}</Text></Text>
-          <Text style={s.eventInfoLine}>until: <Text style={s.eventInfoVal}>{event.ends_at ? new Date(event.ends_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }) : '—'}</Text></Text>
+          <Text style={s.eventInfoLine}>from: <Text style={s.eventInfoVal}>{event.start_at ? new Date(event.start_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: event.timezone || 'Europe/Vienna' }) : '—'}</Text></Text>
+          <Text style={s.eventInfoLine}>until: <Text style={s.eventInfoVal}>{event.ends_at ? new Date(event.ends_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: event.timezone || 'Europe/Vienna' }) : '—'}</Text></Text>
         </View>
       )}
       <View style={s.appFooter}>
@@ -171,10 +171,10 @@ const s = StyleSheet.create({
   saveBtn:      { backgroundColor: GREEN, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: BLACK },
   saveBtnText:  { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', color: BLACK, letterSpacing: 3 },
   divider:      { height: 1, backgroundColor: '#eee', marginVertical: 32 },
-  eventInfo:    { borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingHorizontal: 20, paddingVertical: 12 },
+  eventInfo:    { paddingHorizontal: 20, paddingVertical: 12 },
   eventInfoLine:{ fontFamily: MONO, fontSize: 9, color: '#bbb', letterSpacing: 1, marginBottom: 3 },
   eventInfoVal: { color: '#999', fontWeight: 'bold' },
-  appFooter:    { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 20, alignItems: 'center' },
+  appFooter:    { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 20, alignItems: 'flex-start' },
   appFooterText:{ fontFamily: MONO, fontSize: 9, color: '#ccc', letterSpacing: 1 },
   appVersion:   { fontFamily: MONO, fontSize: 8, color: '#ddd', letterSpacing: 1 },
 });

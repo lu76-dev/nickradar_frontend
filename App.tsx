@@ -19,8 +19,8 @@ const GRAY  = '#999999';
 const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export const EventContext = createContext<{
-  event: { event_name: string; ends_at: string; org_name?: string; start_at?: string } | null;
-  setEvent: (e: { event_name: string; ends_at: string; org_name?: string; start_at?: string } | null) => void;
+  event: { event_name: string; ends_at: string; org_name?: string; start_at?: string; timezone?: string } | null;
+  setEvent: (e: { event_name: string; ends_at: string; org_name?: string; start_at?: string; timezone?: string } | null) => void;
   radarAlert: boolean;
   setRadarAlert: (v: boolean) => void;
 }>({ event: null, setEvent: () => {}, radarAlert: false, setRadarAlert: () => {} });
@@ -141,7 +141,7 @@ export default function App() {
     if (!token) { setInitialRoute('Auth'); return; }
     getMe().then(d => {
       if (d.success) {
-        setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at, org_name: d.participant.org_name, start_at: d.participant.start_at });
+        setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at, org_name: d.participant.org_name, start_at: d.participant.start_at, timezone: d.participant.timezone });
         setInitialRoute('Radar');
       } else {
         clearSession();
