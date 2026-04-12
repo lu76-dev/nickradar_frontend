@@ -109,7 +109,7 @@ export default function RadarScreen({ navigation }: any) {
     return chats.map(c => {
       const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
       return (
-        <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname })}>
+        <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: c.other_photo, intro: c.other_intro })}>
           {c.other_photo
             ? <Image source={{ uri: c.other_photo }} style={s.avatar} />
             : <View style={s.avatarPlaceholder}><Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text></View>

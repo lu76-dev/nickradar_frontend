@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useContext } from 'rea
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -24,7 +25,7 @@ const RED   = '#cc0000';
 const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export default function ChatScreen({ route, navigation }: any) {
-  const { chatId, nickname } = route.params;
+  const { chatId, nickname, photo, intro } = route.params;
   const { radarAlert } = useContext(EventContext);
 
   const [me, setMe]                     = useState<any>(null);
@@ -131,7 +132,14 @@ export default function ChatScreen({ route, navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Text style={s.backText}>‹ back</Text>
         </TouchableOpacity>
-        <Text style={s.headerNick}>{nickname}</Text>
+        {photo
+          ? <Image source={{ uri: photo }} style={s.headerAvatar} />
+          : <View style={s.headerAvatarPlaceholder}><Text style={s.headerAvatarLetter}>{nickname?.[0]?.toUpperCase()}</Text></View>
+        }
+        <View style={s.headerMid}>
+          <Text style={s.headerNick}>{nickname}</Text>
+          {intro ? <Text style={s.headerIntro} numberOfLines={1}>{intro}</Text> : null}
+        </View>
         <View style={s.headerActions}>
           <TouchableOpacity
             onPress={() => !chatBlocked && setBlockModal(true)}
@@ -218,10 +226,15 @@ export default function ChatScreen({ route, navigation }: any) {
 const s = StyleSheet.create({
   safe:               { flex: 1, backgroundColor: WHITE },
   loader:             { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header:             { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee', paddingHorizontal: 12, paddingVertical: 10 },
+  header:             { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee', paddingHorizontal: 12, paddingVertical: 8 },
   backBtn:            { marginRight: 12 },
   backText:           { fontFamily: MONO, fontSize: 13, color: BLACK, letterSpacing: 1 },
-  headerNick:         { flex: 1, fontFamily: MONO, fontSize: 15, fontWeight: 'bold', letterSpacing: 2, color: BLACK },
+  headerNick:         { fontFamily: MONO, fontSize: 13, fontWeight: 'bold', letterSpacing: 2, color: BLACK },
+  headerIntro:        { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
+  headerMid:          { flex: 1, marginLeft: 8, justifyContent: 'center' },
+  headerAvatar:       { width: 34, height: 34, borderRadius: 17, flexShrink: 0 },
+  headerAvatarPlaceholder: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  headerAvatarLetter: { fontFamily: MONO, fontSize: 14, fontWeight: 'bold', color: GRAY },
   headerActions:      { flexDirection: 'row', gap: 8 },
   headerBtnDanger:    { paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: RED },
   headerBtnDangerText:{ fontFamily: MONO, fontSize: 10, color: RED, letterSpacing: 1 },
