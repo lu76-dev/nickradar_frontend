@@ -89,6 +89,7 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState<string | null>(null);
   const [event, setEvent] = useState<{ event_name: string; ends_at: string } | null>(null);
   const [radarAlert, setRadarAlert] = useState(false);
+  const [updateBanner, setUpdateBanner] = useState<string|null>(null);
   const stickerIdRef = React.useRef<number | null>(null);
 
   useEffect(() => {
@@ -110,6 +111,16 @@ export default function App() {
   }, [event]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const handler = (e: any) => {
+        if (e.data?.type === 'SW_UPDATED') setUpdateBanner(e.data.version);
+      };
+      navigator.serviceWorker.addEventListener('message', handler);
+      return () => navigator.serviceWorker.removeEventListener('message', handler);
+    }
+  }, []);
+
+  useEffect(() => {
     const token = getSessionToken();
     if (!token) { setInitialRoute('Auth'); return; }
     getMe().then(d => {
@@ -127,6 +138,14 @@ export default function App() {
 
   return (
     <EventContext.Provider value={{ event, setEvent, radarAlert, setRadarAlert }}>
+      {updateBanner && (
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 9999, backgroundColor: BLACK, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 }}>
+          <Text style={{ fontFamily: MONO, fontSize: 11, color: WHITE, letterSpacing: 1 }}>app updated · {updateBanner}</Text>
+          <TouchableOpacity onPress={() => { setUpdateBanner(null); if (typeof window !== 'undefined') window.location.reload(); }} style={{ backgroundColor: GREEN, paddingHorizontal: 12, paddingVertical: 6 }}>
+            <Text style={{ fontFamily: MONO, fontSize: 11, fontWeight: 'bold', color: BLACK, letterSpacing: 1 }}>reload</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={initialRoute}
