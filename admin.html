@@ -406,37 +406,58 @@ async function stopEventFromModal() {
 
 
 var _plNames = {};
-function _loadPL(id) { loadParticipantList(id, _plNames[id] || ''); }
-async function loadParticipantList(eventId, eventName) {
+function _loadPL(id) { loadParticipantList(id); }
+async function loadParticipantList(eventId) {
   setContent('<div class="loading">Loading...</div>');
   try {
-    var r=await fetch(API+'/api/admin/events/'+eventId+'/stickers',{headers:{'x-admin-key':adminKey}});
+    var r=await fetch(API+'/api/admin/events/'+eventId, {headers:{'x-admin-key':adminKey}});
     var d=await r.json();
     if (!d.success){setContent('<div class="empty">Error.</div>');return;}
-    var stickers=d.stickers, total=stickers.length;
-    var perRow=3, filled=total%perRow===0?total:total+(perRow-(total%perRow));
+    var e=d.event, stickers=d.stickers, connections=d.connections||[];
+    var connMap={};
+    connections.forEach(function(c){
+      if (!connMap[c.seeker_id]) connMap[c.seeker_id]=[];
+      if (!connMap[c.target_id]) connMap[c.target_id]=[];
+      connMap[c.seeker_id].push(c.target_nick);
+      connMap[c.target_id].push(c.seeker_nick);
+    });
+    var tz=e.timezone||'Europe/Vienna';
+    var startStr=new Date(e.start_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz});
+    var endsStr=new Date(e.ends_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:tz});
     var html='<button class="back-btn" onclick="loadEvents()">← Back to Events</button>'
       +'<div style="margin-bottom:20px;">'
-      +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:6px;">'+esc(eventName)+'</div>'
-      +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+total+'</strong></div>'
+      +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:6px;">'+esc(e.event_name)+'</div>'
+      +'<div style="font-size:11px;color:#999;letter-spacing:1px;margin-bottom:8px;">'+startStr+' – '+endsStr+'</div>'
+      +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+e.sticker_count+'</strong> · Activated: <strong>'+e.activated_count+'</strong> · Connections: <strong>'+e.connection_count+'</strong></div>'
       +'<button class="btn-sm" onclick="_loadPL('+eventId+')">↻ Refresh</button>'
       +'</div>'
       +'<div class="participant-list-grid">';
+    var perRow=3, total=stickers.length;
+    var filled=total%perRow===0?total:total+(perRow-(total%perRow));
     for(var i=0;i<filled;i++){
       if(i<stickers.length){
-        var s=stickers[i], isInactive=s.status==='invalidated'||s.status==='blocked';
+        var s=stickers[i];
+        var isInactive=s.status==='invalidated'||s.status==='blocked';
         var sLabel={unused:'not activated',active:'active',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
         var sClass=s.status==='active'?'participant-status online':'participant-status';
         var invBtn=s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="invalidateSticker('+s.id+','+eventId+')" title="Invalidate">✕</button>':'';
+        var connHtml='';
+        if(s.status==='active'&&connMap[s.id]&&connMap[s.id].length>0){
+          var connList=connMap[s.id],uid='conn-'+s.id;
+          connHtml='<div style="font-size:9px;color:#bbb;border-top:1px solid #eee;margin-top:4px;padding-top:4px;">'
+            +connList.length+' connection'+(connList.length>1?'s':'')+' → '
+            +'<span style="color:#000;text-decoration:underline;cursor:pointer;" onclick="document.getElementById(''+uid+'').style.display=document.getElementById(''+uid+'').style.display==='none'?'block':'none'">show</span>'
+            +'<div id="'+uid+'" style="display:none;margin-top:3px;line-height:1.8;">'+connList.map(function(n){return '↔ '+n;}).join('<br>')+'</div></div>';
+        }
         html+='<div class="participant-cell'+(isInactive?' inactive-cell':'')+'">'+invBtn
           +'<div class="participant-nick">'+esc(s.nickname)+'</div>'
           +'<div class="participant-code">'+s.code+'</div>'
-          +'<div class="'+sClass+'">'+sLabel+'</div></div>';
+          +'<div class="'+sClass+'">'+sLabel+'</div>'+connHtml+'</div>';
       } else { html+='<div class="participant-cell empty-cell"></div>'; }
     }
     html+='</div>';
     setContent(html);
-  } catch(e){setContent('<div class="empty">Connection error.</div>');}
+  } catch(ex){setContent('<div class="empty">Connection error.</div>');}
 }
 
 async function invalidateSticker(stickerId, eventId) {
