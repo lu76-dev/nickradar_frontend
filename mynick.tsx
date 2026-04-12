@@ -95,7 +95,6 @@ export default function MyNickScreen({ navigation }: any) {
         </View>
 
         <View style={s.section}>
-          <Text style={s.label}>PROFILE PHOTO</Text>
           {photoUrl ? (
             <View style={s.photoWrap}>
               <Image source={{ uri: photoUrl }} style={s.photo} />
@@ -111,17 +110,16 @@ export default function MyNickScreen({ navigation }: any) {
         </View>
 
         <View style={s.section}>
-          <Text style={s.label}>SLOGAN <Text style={s.hint}>(optional · max 100 chars)</Text></Text>
           <TextInput
             style={s.sloganInput}
             value={slogan}
             onChangeText={setSlogan}
-            placeholder="say something..."
+            placeholder="intro... (optional)"
             placeholderTextColor={GRAY}
-            maxLength={100}
+            maxLength={30}
             multiline
           />
-          <Text style={s.charCount}>{slogan.length}/100</Text>
+          <Text style={s.charCount}>{slogan.length}/30</Text>
         </View>
 
         {saved ? (
