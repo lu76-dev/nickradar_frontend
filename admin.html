@@ -278,8 +278,9 @@ async function loadEvents() {
         ? '<button class="btn-sm" onclick="downloadChatExport('+e.id+')">CSV Export</button>'
         : '<button class="btn-sm" style="opacity:0.35;cursor:default;" disabled title="Only available during active events">CSV Export</button>';
       var evNum='EV-'+String(e.id).padStart(8,'0');
+      _plNames[e.id] = e.event_name;
       var actions='<button class="btn-sm" onclick="openEventModal('+e.id+')">Modify Event</button>'
-        +'<button class="btn-sm" onclick="loadParticipantList('+e.id+',\"'+esc(e.event_name)+'\")">Participants</button>'
+        +'<button class="btn-sm" onclick="_loadPL('+e.id+')">Participants</button>'
         +payBtn
         +exportBtn;
       return '<tr>'
@@ -405,6 +406,8 @@ async function stopEventFromModal() {
 }
 
 
+var _plNames = {};
+function _loadPL(id) { loadParticipantList(id, _plNames[id] || ''); }
 async function loadParticipantList(eventId, eventName) {
   setContent('<div class="loading">Loading...</div>');
   try {
