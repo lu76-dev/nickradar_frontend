@@ -32,7 +32,7 @@ export async function getMe() {
   return r.json();
 }
 
-export async function updateProfile(data: { photo_url?: string | null; slogan?: string | null }) {
+export async function updateProfile(data: { photo_url?: string | null; intro?: string | null }) {
   const r = await fetch(`${API}/api/participant/profile`, {
     method: 'PUT',
     headers: headers() as any,

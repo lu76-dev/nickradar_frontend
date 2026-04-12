@@ -131,8 +131,14 @@ export default function SearchScreen({ navigation }: any) {
         )}
         {results.map(r => (
           <TouchableOpacity key={r.nickname} style={s.resultRow} onPress={() => openProfile(r.nickname)}>
-            <Text style={s.resultNick}>{r.nickname}</Text>
-            {r.slogan ? <Text style={s.resultSlogan} numberOfLines={1}>{r.slogan}</Text> : null}
+            {r.photo_url
+              ? <Image source={{ uri: r.photo_url }} style={s.avatar} />
+              : <View style={s.avatarPlaceholder}><Text style={s.avatarLetter}>{r.nickname?.[0]?.toUpperCase()}</Text></View>
+            }
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={s.resultNick}>{r.nickname}</Text>
+              {r.intro ? <Text style={s.resultIntro} numberOfLines={1}>{r.intro}</Text> : null}
+            </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -147,17 +153,17 @@ export default function SearchScreen({ navigation }: any) {
             </TouchableOpacity>
             {profile && (
               <>
-                {profile.photo_url ? (
-                  <Image source={{ uri: profile.photo_url }} style={s.photo} />
-                ) : (
-                  <View style={s.photoPlaceholder}>
-                    <Text style={s.photoPlaceholderText}>{profile.nickname?.[0]?.toUpperCase()}</Text>
+                <View style={s.profileHeader}>
+                  {profile.photo_url
+                    ? <Image source={{ uri: profile.photo_url }} style={s.photo} />
+                    : <View style={s.photoPlaceholder}><Text style={s.photoPlaceholderText}>{profile.nickname?.[0]?.toUpperCase()}</Text></View>
+                  }
+                  <View style={s.profileHeaderText}>
+                    <Text style={s.profileNick}>{profile.nickname}</Text>
+                    {profile.intro ? <Text style={s.profileIntro}>{profile.intro}</Text> : null}
                   </View>
-                )}
-                <Text style={s.profileNick}>{profile.nickname}</Text>
-                {profile.slogan ? <Text style={s.profileSlogan}>"{profile.slogan}"</Text> : null}
+                </View>
                 <View style={s.divider} />
-                <Text style={s.requestLabel}>SEND REQUEST</Text>
                 <TextInput
                   style={s.requestInput}
                   value={message}
@@ -192,7 +198,7 @@ const s = StyleSheet.create({
   empty:               { fontFamily: MONO, fontSize: 11, color: GRAY, textAlign: 'center', marginTop: 40, letterSpacing: 2 },
   resultRow:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   resultNick:          { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', letterSpacing: 2, color: BLACK, marginRight: 12 },
-  resultSlogan:        { fontFamily: MONO, fontSize: 11, color: GRAY, flex: 1 },
+  resultIntro:        { fontFamily: MONO, fontSize: 11, color: GRAY, flex: 1 },
   modalOverlay:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalCard:           { backgroundColor: WHITE, borderTopWidth: 2, borderTopColor: BLACK, padding: 24, minHeight: 400 },
   modalClose:          { position: 'absolute', top: 16, right: 16, zIndex: 1 },
@@ -200,12 +206,17 @@ const s = StyleSheet.create({
   photo:               { width: 80, height: 80, borderRadius: 40, alignSelf: 'center', marginBottom: 12 },
   photoPlaceholder:    { width: 80, height: 80, borderRadius: 40, backgroundColor: GRAY_BG, alignSelf: 'center', marginBottom: 12, alignItems: 'center', justifyContent: 'center' },
   photoPlaceholderText:{ fontFamily: MONO, fontSize: 28, fontWeight: 'bold', color: BLACK },
-  profileNick:         { fontFamily: MONO, fontSize: 20, fontWeight: 'bold', letterSpacing: 3, color: BLACK, textAlign: 'center', marginBottom: 6 },
-  profileSlogan:       { fontFamily: MONO, fontSize: 12, color: GRAY, textAlign: 'center', marginBottom: 12, fontStyle: 'italic' },
+  profileNick:         { fontFamily: MONO, fontSize: 18, fontWeight: 'bold', letterSpacing: 2, color: BLACK, marginBottom: 4 },
+  profileIntro:       { fontFamily: MONO, fontSize: 11, color: GRAY, letterSpacing: 1 },
   divider:             { height: 1, backgroundColor: '#eee', marginVertical: 16 },
   requestLabel:        { fontFamily: MONO, fontSize: 10, letterSpacing: 3, color: GRAY, marginBottom: 8 },
   requestInput:        { fontFamily: MONO, fontSize: 13, color: BLACK, borderWidth: 1, borderColor: '#ccc', padding: 10, minHeight: 80, marginBottom: 8 },
   sendResult:          { fontFamily: MONO, fontSize: 11, color: '#cc0000', marginBottom: 8, letterSpacing: 1 },
   sendBtn:             { backgroundColor: BLACK, paddingVertical: 12, alignItems: 'center' },
   sendBtnText:         { fontFamily: MONO, fontSize: 12, color: WHITE, letterSpacing: 3 },
+  avatar:              { width: 40, height: 40, borderRadius: 20, flexShrink: 0 },
+  avatarPlaceholder:   { width: 40, height: 40, borderRadius: 20, backgroundColor: GRAY_BG, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  avatarLetter:        { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', color: BLACK },
+  profileHeader:       { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  profileHeaderText:   { flex: 1, marginLeft: 14 },
 });

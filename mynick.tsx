@@ -25,7 +25,7 @@ const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export default function MyNickScreen({ navigation }: any) {
   const [me, setMe]             = useState<any>(null);
-  const [slogan, setSlogan]     = useState('');
+  const [intro, setSlogan]     = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [saving, setSaving]     = useState(false);
   const [saved, setSaved]       = useState('');
@@ -36,7 +36,7 @@ export default function MyNickScreen({ navigation }: any) {
       const d = await getMe();
       if (d.success) {
         setMe(d.participant);
-        setSlogan(d.participant.slogan || '');
+        setSlogan(d.participant.intro || '');
         setPhotoUrl(d.participant.photo_url || null);
       } else {
         clearSession();
@@ -68,7 +68,7 @@ export default function MyNickScreen({ navigation }: any) {
     setSaving(true);
     setSaved('');
     try {
-      const d = await updateProfile({ photo_url: photoUrl, slogan: slogan.trim() || null });
+      const d = await updateProfile({ photo_url: photoUrl, intro: intro.trim() || null });
       if (d.success) setSaved('Saved.');
       else setSaved(d.error || 'Error.');
     } catch { setSaved('Connection error.'); }
@@ -111,15 +111,15 @@ export default function MyNickScreen({ navigation }: any) {
 
         <View style={s.section}>
           <TextInput
-            style={s.sloganInput}
-            value={slogan}
+            style={s.introInput}
+            value={intro}
             onChangeText={setSlogan}
             placeholder="intro... (optional)"
             placeholderTextColor={GRAY}
             maxLength={30}
             multiline
           />
-          <Text style={s.charCount}>{slogan.length}/30</Text>
+          <Text style={s.charCount}>{intro.length}/30</Text>
         </View>
 
         {saved ? (
@@ -156,7 +156,7 @@ const s = StyleSheet.create({
   removeBtnText:{ fontFamily: MONO, fontSize: 11, color: RED, letterSpacing: 1, textDecorationLine: 'underline' },
   pickBtn:      { borderWidth: 1, borderColor: '#ccc', borderStyle: 'dashed', paddingVertical: 20, alignItems: 'center' },
   pickBtnText:  { fontFamily: MONO, fontSize: 12, color: GRAY, letterSpacing: 1 },
-  sloganInput:  { fontFamily: MONO, fontSize: 13, color: BLACK, borderWidth: 1, borderColor: '#ccc', padding: 10, minHeight: 60 },
+  introInput:  { fontFamily: MONO, fontSize: 13, color: BLACK, borderWidth: 1, borderColor: '#ccc', padding: 10, minHeight: 60 },
   charCount:    { fontFamily: MONO, fontSize: 10, color: '#bbb', textAlign: 'right', marginTop: 4 },
   savedMsg:     { fontFamily: MONO, fontSize: 11, color: RED, marginBottom: 8, letterSpacing: 1 },
   saveBtn:      { backgroundColor: GREEN, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: BLACK },

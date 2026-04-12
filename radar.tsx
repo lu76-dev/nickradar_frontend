@@ -119,7 +119,7 @@ export default function RadarScreen({ navigation }: any) {
               <Text style={s.nick}>{c.other_nickname}</Text>
               {hasAlert ? <View style={s.chatDot} /> : null}
             </View>
-            {c.other_slogan ? <Text style={s.sub} numberOfLines={1}>{c.other_slogan}</Text> : null}
+            {c.other_intro ? <Text style={s.sub} numberOfLines={1}>{c.other_intro}</Text> : null}
           </View>
           <View style={s.arrowWrap}><Text style={s.arrow}>›</Text></View>
         </TouchableOpacity>
