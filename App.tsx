@@ -19,8 +19,8 @@ const GRAY  = '#999999';
 const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export const EventContext = createContext<{
-  event: { event_name: string; ends_at: string } | null;
-  setEvent: (e: { event_name: string; ends_at: string } | null) => void;
+  event: { event_name: string; ends_at: string; org_name?: string; start_at?: string } | null;
+  setEvent: (e: { event_name: string; ends_at: string; org_name?: string; start_at?: string } | null) => void;
   radarAlert: boolean;
   setRadarAlert: (v: boolean) => void;
 }>({ event: null, setEvent: () => {}, radarAlert: false, setRadarAlert: () => {} });
@@ -59,7 +59,7 @@ export function TopBar({ navigation }: { navigation?: any }) {
   return (
     <View style={ts.bar}>
       <Image source={{ uri: 'https://app.nickradar.com/nr_logo.png' }} style={ts.logo} resizeMode="contain" />
-      <Text style={ts.nameLabel}>EVENT: </Text><Text style={ts.name} numberOfLines={1}>{event.event_name}</Text>
+      <Text style={ts.name} numberOfLines={1}>{event.event_name}</Text>
       <Text style={[ts.countdown, isUrgent && ts.urgent, isEnded && ts.ended]}>
         {isEnded ? 'ENDED' : timeStr}
       </Text>
@@ -141,7 +141,7 @@ export default function App() {
     if (!token) { setInitialRoute('Auth'); return; }
     getMe().then(d => {
       if (d.success) {
-        setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at });
+        setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at, org_name: d.participant.org_name, start_at: d.participant.start_at });
         setInitialRoute('Radar');
       } else {
         clearSession();
