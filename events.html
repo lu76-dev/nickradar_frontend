@@ -923,17 +923,41 @@ async function doDeleteAccount() {
   } catch(e) { alert('Connection error.'); }
 }
 
+  var _printEid = null, _printTok = null;
   function printStickers(btn) {
-    var eventId = btn.getAttribute('data-eid');
-    var token = btn.getAttribute('data-tok');
-    var fee = prompt('Participant fee (optional)\nLeave empty = no price on sticker\nExample: EUR 2.00  /  FREE  /  CHF 5', '');
-    if (fee === null) return;
-    var url = API+'/api/events/'+eventId+'/print?token='+token;
-    if (fee.trim()) url += '&fee='+encodeURIComponent(fee.trim());
+    _printEid = btn.getAttribute('data-eid');
+    _printTok = btn.getAttribute('data-tok');
+    document.getElementById('fee-input').value = '';
+    document.getElementById('fee-modal').style.display = 'flex';
+    setTimeout(function(){ document.getElementById('fee-input').focus(); }, 100);
+  }
+  function closeFeeModal() {
+    document.getElementById('fee-modal').style.display = 'none';
+  }
+  function confirmFeeModal() {
+    var fee = document.getElementById('fee-input').value.trim();
+    closeFeeModal();
+    var url = API+'/api/events/'+_printEid+'/print?token='+_printTok;
+    if (fee) url += '&fee='+encodeURIComponent(fee);
     var a = document.createElement('a');
     a.href = url; a.target = '_blank'; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 </script>
+
+<div id="fee-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-top:2px solid #000;padding:24px;max-width:400px;width:90%;margin:auto;margin-top:20vh;">
+    <div style="font-size:11px;font-weight:bold;letter-spacing:3px;margin-bottom:12px;">PARTICIPANT FEE</div>
+    <div style="font-size:11px;color:#999;margin-bottom:12px;line-height:1.7;">
+      Leave empty = no price on sticker<br>
+      Text Example: EUR 5.00 &nbsp;/&nbsp; FREE &nbsp;/&nbsp; USD 5.00 &nbsp;/&nbsp; CHF 5.00
+    </div>
+    <input id="fee-input" type="text" onkeydown="if(event.key==='Enter')confirmFeeModal();" maxlength="20" placeholder="e.g. EUR 5.00" style="width:100%;border:1px solid #ccc;padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:16px;box-sizing:border-box;" />
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeFeeModal()" style="flex:1;padding:10px;border:1px solid #ccc;background:#fff;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;">CANCEL</button>
+      <button onclick="confirmFeeModal()" style="flex:1;padding:10px;border:1px solid #000;background:#000;color:#fff;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;font-weight:bold;">PRINT</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
