@@ -293,7 +293,7 @@ async function loadEvents() {
         +'</tr>';
     }).join('');
     setContent('<div class="toolbar"><button class="btn-sm" onclick="loadEvents()">↻ Refresh</button><span class="count">'+events.length+' events</span></div>'
-      +'<table><thead><tr><th>Eventnr.</th><th>Actions</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start <span style="font-weight:normal;opacity:0.5;font-size:9px;color:#fff;">(my local time)</span></th><th>Ends <span style="font-weight:normal;opacity:0.5;font-size:9px;color:#fff;">(my local time)</span></th><th>Stickers</th><th>Activated</th><th>Connections</th></tr></thead>'
+      +'<table><thead><tr><th>Eventnr.</th><th>Actions</th><th>Event</th><th>Org</th><th>Email</th><th>Status</th><th>Start <span style="font-weight:normal;font-size:9px;color:rgba(255,255,255,0.6);">(my local time)</span></th><th>Ends <span style="font-weight:normal;font-size:9px;color:rgba(255,255,255,0.6);">(my local time)</span></th><th>Stickers</th><th>Activated</th><th>Connections</th></tr></thead>'
       +'<tbody>'+(rows||'<tr><td colspan="11" class="empty">No events yet.</td></tr>')+'</tbody></table>');
   } catch(e) { setContent('<div class="empty">Connection error.</div>'); }
 }
