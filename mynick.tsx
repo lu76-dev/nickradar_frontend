@@ -132,12 +132,12 @@ export default function MyNickScreen({ navigation }: any) {
         </TouchableOpacity>
 
       </ScrollView>
-      {event && (
+      {me && (
         <View style={s.eventInfo}>
-          <Text style={s.eventInfoLine}>you joined: <Text style={s.eventInfoVal}>{event.event_name}</Text></Text>
-          <Text style={s.eventInfoLine}>by: <Text style={s.eventInfoVal}>{event.org_name || '—'}</Text></Text>
-          <Text style={s.eventInfoLine}>from: <Text style={s.eventInfoVal}>{event.start_at ? new Date(event.start_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: event.timezone || 'Europe/Vienna' }) : '—'}</Text></Text>
-          <Text style={s.eventInfoLine}>until: <Text style={s.eventInfoVal}>{event.ends_at ? new Date(event.ends_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: event.timezone || 'Europe/Vienna' }) : '—'}</Text></Text>
+          <Text style={s.eventInfoLine}>you joined: <Text style={s.eventInfoVal}>{me.event_name || '—'}</Text></Text>
+          <Text style={s.eventInfoLine}>by: <Text style={s.eventInfoVal}>{me.org_name || '—'}</Text></Text>
+          <Text style={s.eventInfoLine}>from: <Text style={s.eventInfoVal}>{me.start_at ? new Date(me.start_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: me.timezone || 'Europe/Vienna' }) : '—'} ({me.timezone ? (({'Europe/Vienna':'CET','Europe/Berlin':'CET','Europe/London':'GMT','Europe/Lisbon':'WET','Europe/Paris':'CET','America/New_York':'ET','America/Los_Angeles':'PT','America/Sao_Paulo':'BRT','Asia/Tokyo':'JST','Asia/Dubai':'GST','Australia/Sydney':'AEST'} as any)[me.timezone] || me.timezone) : 'CET'})</Text></Text>
+          <Text style={s.eventInfoLine}>until: <Text style={s.eventInfoVal}>{me.ends_at ? new Date(me.ends_at).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: me.timezone || 'Europe/Vienna' }) : '—'}</Text></Text>
         </View>
       )}
       <View style={s.appFooter}>
