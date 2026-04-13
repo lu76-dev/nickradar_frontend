@@ -142,7 +142,7 @@ export default function MyNickScreen({ navigation }: any) {
       )}
       <View style={s.appFooter}>
         <Text style={s.appFooterText}>Event powered by nickradar.com</Text>
-        <Text style={s.appVersion}>v8.16.0</Text>
+        <Text style={s.appVersion}>v9.0.0</Text>
       </View>
       <FooterNav navigation={navigation} active="MyNick" />
     </SafeAreaView>
