@@ -91,8 +91,11 @@
     .participant-code { font-size: 10px; color: #00aa2a; letter-spacing: 2px; font-weight: bold; }
     .participant-status { font-size: 9px; color: #bbb; letter-spacing: 1px; text-transform: uppercase; font-weight: bold; }
     .participant-status.online { color: #00aa2a; }
-    .participant-inv-btn { position: absolute; top: 4px; right: 4px; font-size: 9px; background: none; border: none; color: #ddd; cursor: pointer; font-family: inherit; padding: 2px 4px; }
-    .participant-inv-btn:hover { color: #cc0000; }
+    .participant-inv-btn { position: absolute; top: 4px; right: 4px; font-size: 9px; background: none; border: 1px solid #ccc; color: #999; cursor: pointer; font-family: inherit; padding: 2px 6px; letter-spacing: 1px; }
+    .participant-inv-btn:hover { color: #cc0000; border-color: #cc0000; }
+    .participant-reactivate-btn { position: absolute; top: 4px; right: 4px; font-size: 9px; background: none; border: 1px solid #00aa2a; color: #00aa2a; cursor: pointer; font-family: inherit; padding: 2px 6px; letter-spacing: 1px; }
+    .participant-reactivate-btn:hover { background: #00aa2a; color: #fff; }
+    .participant-status.deactivated { color: #cc0000; }
 
     .info-box { background: #fafafa; border: 1px solid #eee; padding: 16px; max-width: 440px; }
     .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 11px; }
@@ -770,10 +773,12 @@ async function loadParticipantList(eventId) {
     for (var i=0;i<filled;i++) {
       if (i<stickers.length) {
         var s=stickers[i];
-        var isInactive=s.status==='invalidated'||s.status==='blocked';
-        var sLabel={unused:'not activated',active:'active',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
-        var sClass=s.status==='active'?'participant-status online':'participant-status';
-        var invBtn=s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="doInvalidateSticker('+s.id+','+eventId+')" title="Invalidate">✕</button>':'';
+        var isInactive=s.status==='deactivated'||s.status==='invalidated';
+        var sLabel={unused:'not activated',active:'active',deactivated:'deactivated',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
+        var sClass=s.status==='active'?'participant-status online':(s.status==='deactivated'?'participant-status deactivated':'participant-status');
+        var invBtn=s.status==='deactivated'
+          ?'<button class="participant-reactivate-btn" onclick="doReactivateSticker('+s.id+','+eventId+')">REACTIVATE</button>'
+          :s.status!=='invalidated'?'<button class="participant-inv-btn" onclick="doDeactivateSticker('+s.id+','+eventId+')">DEACTIVATE</button>':'';
         var connHtml='';
         if (s.status==='active'&&connMap[s.id]&&connMap[s.id].length>0) {
           var connList=connMap[s.id], uid='conn-'+s.id;
@@ -790,10 +795,18 @@ async function loadParticipantList(eventId) {
   } catch(e) { el.innerHTML='<div class="empty">Connection error.</div>'; }
 }
 
-async function doInvalidateSticker(stickerId, eventId) {
-  if (!confirm('Invalidate this sticker?\nParticipant will be logged out. Issue a new sticker if needed.')) return;
+async function doDeactivateSticker(stickerId, eventId) {
+  if (!confirm('Deactivate this participant?\nThey will be logged out and cannot re-enter until reactivated.')) return;
   try {
-    var r=await fetch(API+'/api/stickers/'+stickerId+'/invalidate', {method:'POST',headers:{Authorization:'Bearer '+token}});
+    var r=await fetch(API+'/api/stickers/'+stickerId+'/deactivate', {method:'POST',headers:{Authorization:'Bearer '+token}});
+    var d=await r.json();
+    if (d.success) loadParticipantList(eventId); else alert('Error: '+d.error);
+  } catch(e) { alert('Connection error.'); }
+}
+
+async function doReactivateSticker(stickerId, eventId) {
+  try {
+    var r=await fetch(API+'/api/stickers/'+stickerId+'/reactivate', {method:'POST',headers:{Authorization:'Bearer '+token}});
     var d=await r.json();
     if (d.success) loadParticipantList(eventId); else alert('Error: '+d.error);
   } catch(e) { alert('Connection error.'); }

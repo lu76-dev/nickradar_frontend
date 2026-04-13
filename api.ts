@@ -120,6 +120,14 @@ export async function blockChat(chatId: number) {
   return r.json();
 }
 
+export async function leaveEvent() {
+  const r = await fetch(`${API}/api/participant/leave`, {
+    method: 'POST',
+    headers: headers() as any,
+  });
+  return r.json();
+}
+
 export async function getBlockedChats() {
   const r = await fetch(`${API}/api/chats/blocked`, { headers: headers() as any });
   return r.json();

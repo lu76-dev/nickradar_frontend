@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getSessionToken, getMe, clearSession, getChats, getIncoming } from './api';
+import { getSessionToken, getMe, clearSession, leaveEvent, getChats, getIncoming } from './api';
 import AuthScreen from './auth';
 import SearchScreen from './search';
 import RadarScreen from './radar';
@@ -50,7 +50,8 @@ export function TopBar({ navigation }: { navigation?: any }) {
   const isUrgent = remaining < 10 * 60 * 1000 && remaining > 0;
   const isEnded  = remaining === 0;
 
-  function doLeave() {
+  async function doLeave() {
+    try { await leaveEvent(); } catch {}
     clearSession();
     setEvent(null);
     if (navigation) navigation.replace('Auth');
