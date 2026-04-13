@@ -50,7 +50,7 @@ cat > "$INDEX" << 'HTMLEOF'
 HTMLEOF
 echo "  ${EXSCRIPT}" >> "$INDEX"
 echo '  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/service-worker.js").catch(function(e){console.log("SW failed",e)})}</script>' >> "$INDEX"
-echo '  <script defer src="https://analytics.nickradar.com/script.js" data-website-id="00d87254-9494-4939-a633-840abf0f574b"></script>' >> "$INDEX"
+echo '  <script defer src="https://analytics.nickradar.com/script.js" data-website-id="80e78d8a-2a7b-42d5-bd4f-a0a60d410cc4"></script>' >> "$INDEX"
 echo '</body></html>' >> "$INDEX"
 [ -f "web/service-worker.js" ] && cp web/service-worker.js dist/service-worker.js
 echo "✅ Metatags + Umami OK"
