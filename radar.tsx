@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getChats, getHistory, getBlockedChats, getMe } from './api';
+import { getChats, getBlockedChats, getMe } from './api';
 import { FooterNav } from './search';
 import { TopBar, EventContext } from './App';
 
@@ -55,7 +55,6 @@ export default function RadarScreen({ navigation }: any) {
   const { setRadarAlert } = useContext(EventContext);
   const [tab, setTab]           = useState<Tab>('chats');
   const [chats, setChats]       = useState<any[]>([]);
-  const [history, setHistory]         = useState<any[]>([]);
   const [blockedChats, setBlockedChats] = useState<any[]>([]);
   const [timezone, setTimezone] = useState('Europe/Vienna');
   const [myStickerId, setMyStickerId] = useState<number | null>(null);
@@ -76,11 +75,10 @@ export default function RadarScreen({ navigation }: any) {
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [c, h, bc, meD] = await Promise.all([getChats(), getHistory(), getBlockedChats(), getMe()]);
+      const [c, bc, meD] = await Promise.all([getChats(), getBlockedChats(), getMe()]);
       if (meD.success && meD.participant?.timezone) setTimezone(meD.participant.timezone);
       if (meD.success && meD.participant?.sticker_id) setMyStickerId(meD.participant.sticker_id);
       if (c.success) setChats(c.chats || []);
-      if (h.success) setHistory(h.requests || []);
       if (bc.success) setBlockedChats(bc.chats || []);
     } catch {}
     setLoading(false);
@@ -102,7 +100,7 @@ export default function RadarScreen({ navigation }: any) {
     }
   }, [navigation]);
 
-  const historyCount = blockedChats.length + history.length;
+  const historyCount = blockedChats.length;
 
   function renderChats() {
     const activeChats = chats.filter(c => c.status === 'active');
@@ -143,9 +141,7 @@ export default function RadarScreen({ navigation }: any) {
   }
 
   function renderHistory() {
-    const hasHistory = history.length > 0;
-    const hasBlocked = blockedChats.length > 0;
-    if (!hasHistory && !hasBlocked) return <Text style={s.empty}>no history yet</Text>;
+    if (!blockedChats.length) return <Text style={s.empty}>no history yet</Text>;
     return (
       <>
         {blockedChats.map(bc => (
@@ -157,18 +153,6 @@ export default function RadarScreen({ navigation }: any) {
             <Text style={[s.statusLabel, { color: RED }]}>{bc.blocked_label}</Text>
           </View>
         ))}
-        {history.map((r, i) => {
-          const statusColor = r.status === 'yes' ? GREEN : r.status === 'no' ? RED : GRAY;
-          return (
-            <View key={i} style={s.row}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.nick}>{r.target_nickname || r.seeker_nickname}</Text>
-                <Text style={s.sub}>{formatDate(r.sent_at)}</Text>
-              </View>
-              <Text style={[s.statusLabel, { color: statusColor }]}>{r.status}</Text>
-            </View>
-          );
-        })}
       </>
     );
   }
