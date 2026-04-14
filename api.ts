@@ -60,38 +60,6 @@ export async function startChat(target_nickname: string, message: string) {
   return r.json();
 }
 
-export async function sendRequest(target_nickname: string, message: string) {
-  const r = await fetch(`${API}/api/requests`, {
-    method: 'POST',
-    headers: headers() as any,
-    body: JSON.stringify({ target_nickname, message }),
-  });
-  return r.json();
-}
-
-export async function getIncoming() {
-  const r = await fetch(`${API}/api/requests/incoming`, { headers: headers() as any });
-  return r.json();
-}
-
-export async function getOutgoing() {
-  const r = await fetch(`${API}/api/requests/outgoing`, { headers: headers() as any });
-  return r.json();
-}
-
-export async function getHistory() {
-  const r = await fetch(`${API}/api/requests/history`, { headers: headers() as any });
-  return r.json();
-}
-
-export async function answerRequest(id: number, status: 'yes' | 'no') {
-  const r = await fetch(`${API}/api/requests/${id}`, {
-    method: 'PUT',
-    headers: headers() as any,
-    body: JSON.stringify({ answer: status }),
-  });
-  return r.json();
-}
 
 export async function getChats() {
   const r = await fetch(`${API}/api/chats`, { headers: headers() as any });
