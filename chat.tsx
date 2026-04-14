@@ -66,7 +66,7 @@ export default function ChatScreen({ route, navigation }: any) {
       if (msgD.success) {
         setMessages(msgD.messages || []);
         if (msgD.chatStatus === 'blocked') setChatBlocked(true);
-        if (msgD.chatStatus === 'left') setChatLeft(true);
+        if (msgD.chatStatus === 'left' || msgD.chatStatus === 'superseded') setChatLeft(true);
       }
     } catch {}
   }, [chatId]);
