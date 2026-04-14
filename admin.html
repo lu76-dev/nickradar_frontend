@@ -433,7 +433,7 @@ async function loadParticipantList(eventId) {
       +'<div style="margin-bottom:20px;">'
       +'<div style="font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:6px;">'+esc(e.event_name)+'</div>'
       +'<div style="font-size:11px;color:#999;letter-spacing:1px;margin-bottom:8px;">'+startStr+' – '+endsStr+' <span style="color:#bbb;font-size:10px;">('+tzLabel+')</span></div>'
-      +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+e.sticker_count+'</strong> · Activated: <strong>'+e.activated_count+'</strong> · Connections: <strong>'+e.connection_count+'</strong></div>'
+      +'<div style="font-size:11px;color:#666;letter-spacing:1px;margin-bottom:12px;">Stickers: <strong>'+e.sticker_count+'</strong> · Activations: <strong>'+e.activated_count+'</strong> · Connections: <strong>'+e.connection_count+'</strong></div>'
       +'<button class="btn-sm" onclick="_loadPL('+eventId+')">↻ Refresh</button>'
       +'</div>'
       +'<div class="participant-list-grid">';
