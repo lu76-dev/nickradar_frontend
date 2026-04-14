@@ -443,7 +443,7 @@ async function loadParticipantList(eventId) {
       if(i<stickers.length){
         var s=stickers[i];
         var isInactive=s.status==='deactivated'||s.status==='invalidated';
-        var sLabel={unused:'inactive',active:'active',deactivated:'deactivated',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
+        var sLabel={unused:'inactive',active:'active',deactivated:'deactivated by EA',invalidated:'invalidated',blocked:'blocked'}[s.status]||s.status;
         var sClass=s.status==='active'?'participant-status online':(s.status==='deactivated'?'participant-status deactivated':'participant-status');
         var invBtn=s.status==='deactivated'
           ?'<button class="participant-reactivate-btn" onclick="reactivateSticker('+s.id+','+eventId+')">REACTIVATE</button>'
