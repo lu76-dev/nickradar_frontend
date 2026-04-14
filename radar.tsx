@@ -34,17 +34,24 @@ export default function RadarScreen({ navigation }: any) {
   const [refreshing, setRefreshing]   = useState(false);
   const pollRef = useRef<any>(null);
 
+  const myIdRef = useRef<number | null>(null);
+
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [c, meD] = await Promise.all([getChats(), getMe()]);
-      const myId = meD.success ? meD.participant?.sticker_id : null;
-      if (myId) setMyStickerId(myId);
+      if (!myIdRef.current) {
+        const meD = await getMe();
+        if (meD.success && meD.participant?.sticker_id) {
+          myIdRef.current = meD.participant.sticker_id;
+          setMyStickerId(meD.participant.sticker_id);
+        }
+      }
+      const c = await getChats();
       if (c.success) {
         const allChats = c.chats || [];
         setChats(allChats);
         const unread = allChats.filter((ch: any) =>
-          ch.status === 'active' && ch.last_sender_id && ch.last_sender_id !== myId
+          ch.status === 'active' && ch.last_sender_id && ch.last_sender_id !== myIdRef.current
         ).length;
         setUnreadCount(unread);
         setRadarAlert(unread > 0);

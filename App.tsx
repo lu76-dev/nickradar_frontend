@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getSessionToken, getMe, clearSession, leaveEvent, getChats } from './api';
+import { getSessionToken, getMe, clearSession, leaveEvent } from './api';
 import AuthScreen from './auth';
 import SearchScreen from './search';
 import RadarScreen from './radar';
@@ -91,24 +91,6 @@ export default function App() {
   const [event, setEvent] = useState<{ event_name: string; ends_at: string } | null>(null);
   const [radarAlert, setRadarAlert] = useState(false);
   const [updateBanner, setUpdateBanner] = useState<string|null>(null);
-  const stickerIdRef = React.useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!event) return;
-    const poll = async () => {
-      try {
-        const meD = await getMe();
-        if (meD.success && meD.participant?.sticker_id) stickerIdRef.current = meD.participant.sticker_id;
-        const chatsD = await getChats();
-        const chats = chatsD.success ? (chatsD.chats || []) : [];
-        const hasAlert = chats.some((ch: any) => ch.status === 'active' && ch.last_sender_id && ch.last_sender_id !== stickerIdRef.current);
-        setRadarAlert(hasAlert);
-      } catch {}
-    };
-    poll();
-    const id = setInterval(poll, 2000);
-    return () => clearInterval(id);
-  }, [event]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
