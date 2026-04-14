@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Platform,
   ScrollView,
@@ -142,7 +143,7 @@ export default function MyNickScreen({ navigation }: any) {
       )}
       <View style={s.appFooter}>
         <Text style={s.appFooterText}>Event powered by nickradar.com</Text>
-        <Text style={s.appVersion}>v9.0.0</Text>
+        <Text style={s.appVersion}>v9.0.4</Text>
       </View>
       <FooterNav navigation={navigation} active="MyNick" />
     </SafeAreaView>
