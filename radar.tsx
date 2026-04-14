@@ -105,26 +105,41 @@ export default function RadarScreen({ navigation }: any) {
   const historyCount = blockedChats.length + history.length;
 
   function renderChats() {
-    if (!chats.length) return <Text style={s.empty}>no active chats</Text>;
-    return chats.map(c => {
-      const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
-      return (
-        <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: c.other_photo, intro: c.other_intro })}>
-          {c.other_photo
-            ? <Image source={{ uri: c.other_photo }} style={s.avatar} />
-            : <View style={s.avatarPlaceholder}><Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text></View>
-          }
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={s.nick}>{c.other_nickname}</Text>
-              {hasAlert ? <View style={s.chatDot} /> : null}
+    const activeChats = chats.filter(c => c.status === 'active');
+    const leftChats = chats.filter(c => c.status === 'left');
+    if (!activeChats.length && !leftChats.length) return <Text style={s.empty}>no active chats</Text>;
+    return (
+      <>
+        {activeChats.map(c => {
+          const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
+          return (
+            <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: c.other_photo, intro: c.other_intro })}>
+              {c.other_photo
+                ? <Image source={{ uri: c.other_photo }} style={s.avatar} />
+                : <View style={s.avatarPlaceholder}><Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text></View>
+              }
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={s.nick}>{c.other_nickname}</Text>
+                  {hasAlert ? <View style={s.chatDot} /> : null}
+                </View>
+                {c.other_intro ? <Text style={s.sub} numberOfLines={1}>{c.other_intro}</Text> : null}
+              </View>
+              <View style={s.arrowWrap}><Text style={s.arrow}>›</Text></View>
+            </TouchableOpacity>
+          );
+        })}
+        {leftChats.map(c => (
+          <TouchableOpacity key={c.id} style={[s.row, s.rowLeft]} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: null, intro: null, isLeft: true })}>
+            <View style={[s.avatarPlaceholder, s.avatarLeft]}><Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text></View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={[s.nick, s.nickLeft]}>{c.other_nickname}</Text>
+              <Text style={s.sub} numberOfLines={1}>has left the event</Text>
             </View>
-            {c.other_intro ? <Text style={s.sub} numberOfLines={1}>{c.other_intro}</Text> : null}
-          </View>
-          <View style={s.arrowWrap}><Text style={s.arrow}>›</Text></View>
-        </TouchableOpacity>
-      );
-    });
+          </TouchableOpacity>
+        ))}
+      </>
+    );
   }
 
   function renderHistory() {
@@ -215,4 +230,7 @@ const s = StyleSheet.create({
   avatar:       { width: 40, height: 40, borderRadius: 20, flexShrink: 0 },
   avatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   avatarLetter: { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', color: GRAY },
+  rowLeft:      { opacity: 0.5 },
+  nickLeft:     { color: GRAY },
+  avatarLeft:   { backgroundColor: '#e8e8e8' },
 });

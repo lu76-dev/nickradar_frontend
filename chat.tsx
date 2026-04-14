@@ -25,7 +25,7 @@ const RED   = '#cc0000';
 const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export default function ChatScreen({ route, navigation }: any) {
-  const { chatId, nickname, photo, intro } = route.params;
+  const { chatId, nickname, photo, intro, isLeft } = route.params;
   const { radarAlert } = useContext(EventContext);
 
   const [me, setMe]                     = useState<any>(null);
@@ -34,6 +34,7 @@ export default function ChatScreen({ route, navigation }: any) {
   const [sending, setSending]           = useState(false);
   const [loading, setLoading]           = useState(true);
   const [chatBlocked, setChatBlocked]   = useState(false);
+  const [chatLeft, setChatLeft]         = useState(isLeft || false);
   const [blockModal, setBlockModal]     = useState(false);
   const [timezone, setTimezone]         = useState('Europe/Vienna');
 
@@ -65,6 +66,7 @@ export default function ChatScreen({ route, navigation }: any) {
       if (msgD.success) {
         setMessages(msgD.messages || []);
         if (msgD.chatStatus === 'blocked') setChatBlocked(true);
+        if (msgD.chatStatus === 'left') setChatLeft(true);
       }
     } catch {}
   }, [chatId]);
@@ -141,6 +143,7 @@ export default function ChatScreen({ route, navigation }: any) {
           {intro ? <Text style={s.headerIntro} numberOfLines={1}>{intro}</Text> : null}
         </View>
         <View style={s.headerActions}>
+          {!chatLeft && (
           <TouchableOpacity
             onPress={() => !chatBlocked && setBlockModal(true)}
             style={[s.headerBtnDanger, chatBlocked && s.headerBtnDone]}
@@ -149,6 +152,7 @@ export default function ChatScreen({ route, navigation }: any) {
               {chatBlocked ? 'blocked' : 'block'}
             </Text>
           </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -172,7 +176,11 @@ export default function ChatScreen({ route, navigation }: any) {
           ListEmptyComponent={<Text style={s.empty}>no messages yet · say hello!</Text>}
         />
 
-        {chatBlocked ? (
+        {chatLeft ? (
+          <View style={s.blockedBar}>
+            <Text style={s.blockedBarText}>{nickname} has left the event. If this nickname logs in again, you can start a new chat, and this old chat window will disappear automatically.</Text>
+          </View>
+        ) : chatBlocked ? (
           <View style={s.blockedBar}>
             <Text style={s.blockedBarText}>this chat has been blocked</Text>
           </View>
