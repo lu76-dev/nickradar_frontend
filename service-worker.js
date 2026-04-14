@@ -1,5 +1,5 @@
 // nickradar Service Worker - Auto Update System
-const CACHE_VERSION = 'v9.0.1';
+const CACHE_VERSION = 'v9.0.2';
 const CACHE_NAME = `nickradar-${CACHE_VERSION}`;
 
 const STATIC_CACHE = [
