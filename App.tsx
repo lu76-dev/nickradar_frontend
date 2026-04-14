@@ -101,7 +101,7 @@ export default function App() {
         if (meD.success && meD.participant?.sticker_id) stickerIdRef.current = meD.participant.sticker_id;
         const chatsD = await getChats();
         const chats = chatsD.success ? (chatsD.chats || []) : [];
-        const hasAlert = chats.some((ch: any) => ch.last_sender_id && ch.last_sender_id !== stickerIdRef.current);
+        const hasAlert = chats.some((ch: any) => ch.status === 'active' && ch.last_sender_id && ch.last_sender_id !== stickerIdRef.current);
         setRadarAlert(hasAlert);
       } catch {}
     };

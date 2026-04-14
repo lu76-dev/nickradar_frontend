@@ -11,75 +11,35 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getChats, getBlockedChats, getMe } from './api';
+import { getChats, getMe } from './api';
 import { FooterNav } from './search';
 import { TopBar, EventContext } from './App';
 
-const WHITE     = '#ffffff';
-const BLACK     = '#000000';
-const GREEN     = '#00ff41';
-const GRAY      = '#999999';
-const RED       = '#cc0000';
-const MONO      = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
-
-type Tab = 'chats' | 'history';
-
-function RedBadge({ count }: { count: number }) {
-  if (!count) return null;
-  return (
-    <View style={b.red}>
-      <Text style={b.txt}>{count}</Text>
-    </View>
-  );
-}
-
-function GrayBadge({ count }: { count: number }) {
-  if (!count) return null;
-  return (
-    <View style={b.gray}>
-      <Text style={b.txt}>{count}</Text>
-    </View>
-  );
-}
-
-const b = StyleSheet.create({
-  red:  { backgroundColor: RED,  borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', marginLeft: 4, paddingHorizontal: 4 },
-  gray: { backgroundColor: GRAY, borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', marginLeft: 4, paddingHorizontal: 4 },
-  dot:  { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 4 },
-  txt:  { fontFamily: MONO, fontSize: 9, color: WHITE, fontWeight: 'bold' },
-});
-
-
+const WHITE = '#ffffff';
+const BLACK = '#000000';
+const GREEN = '#00ff41';
+const GRAY  = '#999999';
+const RED   = '#cc0000';
+const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
 export default function RadarScreen({ navigation }: any) {
   const { setRadarAlert } = useContext(EventContext);
-  const [tab, setTab]           = useState<Tab>('chats');
-  const [chats, setChats]       = useState<any[]>([]);
-  const [blockedChats, setBlockedChats] = useState<any[]>([]);
-  const [timezone, setTimezone] = useState('Europe/Vienna');
+  const [chats, setChats]           = useState<any[]>([]);
   const [myStickerId, setMyStickerId] = useState<number | null>(null);
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const pollRef = useRef<any>(null);
-
-  function formatDate(str: string) {
-    try {
-      const d = new Date(str);
-      return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: timezone }) +
-        ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: timezone });
-    } catch {
-      return new Date(str).toLocaleString('en-GB');
-    }
-  }
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [c, bc, meD] = await Promise.all([getChats(), getBlockedChats(), getMe()]);
-      if (meD.success && meD.participant?.timezone) setTimezone(meD.participant.timezone);
+      const [c, meD] = await Promise.all([getChats(), getMe()]);
       if (meD.success && meD.participant?.sticker_id) setMyStickerId(meD.participant.sticker_id);
-      if (c.success) setChats(c.chats || []);
-      if (bc.success) setBlockedChats(bc.chats || []);
+      if (c.success) {
+        setChats(c.chats || []);
+        const hasAlert = (c.chats || []).some((ch: any) => ch.status === 'active' && ch.last_sender_id && ch.last_sender_id !== meD.participant?.sticker_id);
+        setRadarAlert(hasAlert);
+      }
     } catch {}
     setLoading(false);
     setRefreshing(false);
@@ -91,25 +51,44 @@ export default function RadarScreen({ navigation }: any) {
     return () => clearInterval(pollRef.current);
   }, []);
 
-  useEffect(() => {
-    if (navigation.getState) {
-      const unsubscribe = navigation.addListener('focus', () => {
-        setTab('chats');
-      });
-      return unsubscribe;
-    }
-  }, [navigation]);
-
-  const historyCount = blockedChats.length;
-
-  function renderChats() {
-    const activeChats = chats.filter(c => c.status === 'active');
-    const leftChats = chats.filter(c => c.status === 'left');
-    if (!activeChats.length && !leftChats.length) return <Text style={s.empty}>no active chats</Text>;
+  function renderList() {
+    if (!chats.length) return <Text style={s.empty}>no chats yet</Text>;
     return (
       <>
-        {activeChats.map(c => {
-          const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
+        {chats.map(c => {
+          const isActive   = c.status === 'active';
+          const isLeft     = c.status === 'left';
+          const isBlocked  = c.status === 'blocked';
+          const hasAlert   = isActive && c.last_sender_id && c.last_sender_id !== myStickerId;
+
+          if (isBlocked) {
+            return (
+              <View key={c.id} style={[s.row, s.rowBlocked]}>
+                <View style={[s.avatarPlaceholder, { backgroundColor: '#e8e8e8' }]}>
+                  <Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[s.nick, { color: GRAY }]}>{c.other_nickname}</Text>
+                </View>
+                <Text style={s.blockedLabel}>{c.blocked_label || 'blocked'}</Text>
+              </View>
+            );
+          }
+
+          if (isLeft) {
+            return (
+              <TouchableOpacity key={c.id} style={[s.row, s.rowLeft]} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: null, intro: null, isLeft: true })}>
+                <View style={[s.avatarPlaceholder, { backgroundColor: '#e8e8e8' }]}>
+                  <Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[s.nick, { color: GRAY }]}>{c.other_nickname}</Text>
+                  <Text style={s.sub}>has left the event</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }
+
           return (
             <TouchableOpacity key={c.id} style={s.row} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: c.other_photo, intro: c.other_intro })}>
               {c.other_photo
@@ -127,32 +106,6 @@ export default function RadarScreen({ navigation }: any) {
             </TouchableOpacity>
           );
         })}
-        {leftChats.map(c => (
-          <TouchableOpacity key={c.id} style={[s.row, s.rowLeft]} onPress={() => navigation.navigate('Chat', { chatId: c.id, nickname: c.other_nickname, photo: null, intro: null, isLeft: true })}>
-            <View style={[s.avatarPlaceholder, s.avatarLeft]}><Text style={s.avatarLetter}>{c.other_nickname?.[0]?.toUpperCase()}</Text></View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={[s.nick, s.nickLeft]}>{c.other_nickname}</Text>
-              <Text style={s.sub} numberOfLines={1}>has left the event</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </>
-    );
-  }
-
-  function renderHistory() {
-    if (!blockedChats.length) return <Text style={s.empty}>no history yet</Text>;
-    return (
-      <>
-        {blockedChats.map(bc => (
-          <View key={'bc-' + bc.id} style={s.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.nick}>{bc.other_nickname}</Text>
-              <Text style={s.sub}>{formatDate(bc.blocked_at)}</Text>
-            </View>
-            <Text style={[s.statusLabel, { color: RED }]}>{bc.blocked_label}</Text>
-          </View>
-        ))}
       </>
     );
   }
@@ -160,21 +113,6 @@ export default function RadarScreen({ navigation }: any) {
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
       <TopBar navigation={navigation} />
-      <View style={s.tabRow}>
-        <TouchableOpacity style={[s.tabBtn, tab === 'chats' && s.tabBtnActive]} onPress={() => setTab('chats')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.tabLabel, tab === 'chats' && s.tabLabelActive]}>chats</Text>
-            <RedBadge count={chats.filter(ch => ch.last_sender_id && ch.last_sender_id !== myStickerId).length} />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.tabBtn, tab === 'history' && s.tabBtnActive]} onPress={() => setTab('history')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.tabLabel, tab === 'history' && s.tabLabelActive]}>history</Text>
-            <GrayBadge count={historyCount} />
-          </View>
-        </TouchableOpacity>
-      </View>
-
       {loading ? (
         <View style={s.loader}><ActivityIndicator color={GREEN} /></View>
       ) : (
@@ -182,39 +120,30 @@ export default function RadarScreen({ navigation }: any) {
           style={s.scroll}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={GREEN} />}
         >
-          {tab === 'chats'    && renderChats()}
-          {tab === 'history'  && renderHistory()}
+          {renderList()}
           <View style={{ height: 20 }} />
         </ScrollView>
       )}
-
       <FooterNav navigation={navigation} active="Radar" />
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe:         { flex: 1, backgroundColor: WHITE },
-  tabRow:       { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: BLACK },
-  tabBtn:       { flex: 1, paddingVertical: 10, alignItems: 'center' },
-  tabBtnActive: { backgroundColor: BLACK },
-  tabLabel:     { fontFamily: MONO, fontSize: 10, letterSpacing: 1, color: GRAY, fontWeight: 'bold' },
-  tabLabelActive:{ color: WHITE },
-  loader:       { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll:       { flex: 1 },
-  empty:        { fontFamily: MONO, fontSize: 11, color: GRAY, textAlign: 'center', marginTop: 40, letterSpacing: 2 },
-  row:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  nick:         { fontFamily: MONO, fontSize: 15, fontWeight: 'bold', letterSpacing: 2, color: BLACK, marginBottom: 2 },
-  sub:          { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
-  message:      { fontFamily: MONO, fontSize: 11, color: '#555', marginTop: 2, lineHeight: 16 },
-  arrowWrap:    { paddingLeft: 12 },
-  arrow:        { fontFamily: MONO, fontSize: 22, color: GRAY },
-  statusLabel:  { fontFamily: MONO, fontSize: 11, letterSpacing: 1 },
-  chatDot:      { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 8, marginBottom: 2 },
-  avatar:       { width: 40, height: 40, borderRadius: 20, flexShrink: 0 },
+  safe:              { flex: 1, backgroundColor: WHITE },
+  loader:            { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  scroll:            { flex: 1 },
+  empty:             { fontFamily: MONO, fontSize: 11, color: GRAY, textAlign: 'center', marginTop: 40, letterSpacing: 2 },
+  row:               { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  rowLeft:           { opacity: 0.5 },
+  rowBlocked:        { opacity: 0.4 },
+  nick:              { fontFamily: MONO, fontSize: 15, fontWeight: 'bold', letterSpacing: 2, color: BLACK, marginBottom: 2 },
+  sub:               { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
+  arrowWrap:         { paddingLeft: 12 },
+  arrow:             { fontFamily: MONO, fontSize: 22, color: GRAY },
+  chatDot:           { backgroundColor: RED, borderRadius: 5, width: 10, height: 10, marginLeft: 8, marginBottom: 2 },
+  blockedLabel:      { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
+  avatar:            { width: 40, height: 40, borderRadius: 20, flexShrink: 0 },
   avatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarLetter: { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', color: GRAY },
-  rowLeft:      { opacity: 0.5 },
-  nickLeft:     { color: GRAY },
-  avatarLeft:   { backgroundColor: '#e8e8e8' },
+  avatarLetter:      { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', color: GRAY },
 });
