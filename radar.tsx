@@ -22,7 +22,7 @@ const GRAY  = '#999999';
 const RED   = '#cc0000';
 const MONO  = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 
-type Tab = 'chats' | 'map';
+type Tab = 'chats' | 'instructions';
 
 export default function RadarScreen({ navigation }: any) {
   const { setRadarAlert } = useContext(EventContext);
@@ -130,13 +130,35 @@ export default function RadarScreen({ navigation }: any) {
     );
   }
 
-  function renderMap() {
+  function renderInstructions() {
     return (
-      <View style={s.comingSoon}>
-        <Text style={s.comingSoonIcon}>◉</Text>
-        <Text style={s.comingSoonTitle}>MAP</Text>
-        <Text style={s.comingSoonSub}>coming soon</Text>
-      </View>
+      <ScrollView style={s.scroll} contentContainerStyle={s.instrScroll}>
+        <Text style={s.instrTitle}>HOW IT WORKS</Text>
+
+        <Text style={s.instrSection}>wear your sticker</Text>
+        <Text style={s.instrText}>Put your sticker visibly on your shirt, jacket, or phone.</Text>
+
+        <Text style={s.instrSection}>meet people</Text>
+        <Text style={s.instrText}>Walk around. When you see a nickname you like, remember it.</Text>
+
+        <Text style={s.instrSection}>search & connect</Text>
+        <Text style={s.instrText}>Go to SEARCH, type the nickname, send a message. Chat starts immediately.</Text>
+
+        <Text style={s.instrSection}>radar</Text>
+        <Text style={s.instrText}>New messages show as a red dot on your RADAR tab.</Text>
+
+        <View style={s.instrDivider} />
+
+        <Text style={s.instrTitle}>GOOD TO KNOW</Text>
+        <Text style={s.instrBullet}>· Your nickname is unique to this event</Text>
+        <Text style={s.instrBullet}>· No phone numbers or emails are ever shared</Text>
+        <Text style={s.instrBullet}>· You can block any chat at any time</Text>
+        <Text style={s.instrBullet}>· All data is deleted when the event ends</Text>
+        <Text style={s.instrBullet}>· If you log out, you can log back in with your code — but for security reasons, previous chats will not be visible anymore</Text>
+        <Text style={s.instrBullet}>· For any issues with your code, chats, or the event in general, please speak to the event staff on-site</Text>
+
+        <View style={{ height: 32 }} />
+      </ScrollView>
     );
   }
 
@@ -153,8 +175,8 @@ export default function RadarScreen({ navigation }: any) {
             )}
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.tabBtn, tab === 'map' && s.tabBtnActive]} onPress={() => setTab('map')}>
-          <Text style={[s.tabLabel, tab === 'map' && s.tabLabelActive]}>map</Text>
+        <TouchableOpacity style={[s.tabBtn, tab === 'instructions' && s.tabBtnActive]} onPress={() => setTab('instructions')}>
+          <Text style={[s.tabLabel, tab === 'instructions' && s.tabLabelActive]}>info</Text>
         </TouchableOpacity>
       </View>
 
@@ -171,7 +193,7 @@ export default function RadarScreen({ navigation }: any) {
           </ScrollView>
         )
       ) : (
-        renderMap()
+        renderInstructions()
       )}
 
       <FooterNav navigation={navigation} active="Radar" />
@@ -202,8 +224,10 @@ const s = StyleSheet.create({
   avatar:            { width: 40, height: 40, borderRadius: 20, flexShrink: 0 },
   avatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   avatarLetter:      { fontFamily: MONO, fontSize: 16, fontWeight: 'bold', color: GRAY },
-  comingSoon:        { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  comingSoonIcon:    { fontFamily: MONO, fontSize: 40, color: GREEN },
-  comingSoonTitle:   { fontFamily: MONO, fontSize: 14, fontWeight: 'bold', letterSpacing: 4, color: BLACK },
-  comingSoonSub:     { fontFamily: MONO, fontSize: 11, color: GRAY, letterSpacing: 2 },
+  instrScroll:       { padding: 24 },
+  instrTitle:        { fontFamily: MONO, fontSize: 10, fontWeight: 'bold', letterSpacing: 3, color: BLACK, marginBottom: 16 },
+  instrSection:      { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', letterSpacing: 1, color: BLACK, marginBottom: 4 },
+  instrText:         { fontFamily: MONO, fontSize: 11, color: GRAY, letterSpacing: 0.5, lineHeight: 18, marginBottom: 16 },
+  instrDivider:      { height: 1, backgroundColor: '#eee', marginVertical: 20 },
+  instrBullet:       { fontFamily: MONO, fontSize: 11, color: GRAY, letterSpacing: 0.5, lineHeight: 18, marginBottom: 10 },
 });
