@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getSessionToken, getMe, clearSession, leaveEvent } from './api';
@@ -40,6 +40,7 @@ function useCountdown(endsAt: string | undefined) {
 export function TopBar({ navigation }: { navigation?: any }) {
   const { event, setEvent } = useContext(EventContext);
   const remaining = useCountdown(event?.ends_at);
+  const [leaveModal, setLeaveModal] = useState(false);
 
   if (!event) return null;
 
@@ -58,18 +59,37 @@ export function TopBar({ navigation }: { navigation?: any }) {
   }
 
   return (
-    <View style={ts.bar}>
-      <Image source={{ uri: 'https://app.nickradar.com/nr_logo.png' }} style={ts.logo} resizeMode="contain" />
-      <Text style={ts.name} numberOfLines={1}>{event.event_name}</Text>
-      <Text style={[ts.countdown, isUrgent && ts.urgent, isEnded && ts.ended]}>
-        {isEnded ? 'ENDED' : timeStr}
-      </Text>
-      {navigation ? (
-        <TouchableOpacity onPress={doLeave} style={ts.leaveBtn}>
-          <Text style={ts.leaveTxt}>leave</Text>
-        </TouchableOpacity>
-      ) : null}
-    </View>
+    <>
+      <View style={ts.bar}>
+        <Image source={{ uri: 'https://app.nickradar.com/nr_logo.png' }} style={ts.logo} resizeMode="contain" />
+        <Text style={ts.name} numberOfLines={1}>{event.event_name}</Text>
+        <Text style={[ts.countdown, isUrgent && ts.urgent, isEnded && ts.ended]}>
+          {isEnded ? 'ENDED' : timeStr}
+        </Text>
+        {navigation ? (
+          <TouchableOpacity onPress={() => setLeaveModal(true)} style={ts.leaveBtn}>
+            <Text style={ts.leaveTxt}>leave</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      <Modal visible={leaveModal} transparent animationType="slide" onRequestClose={() => setLeaveModal(false)}>
+        <View style={ts.modalOverlay}>
+          <View style={ts.modalCard}>
+            <Text style={ts.modalTitle}>LEAVE EVENT</Text>
+            <Text style={ts.modalText}>Are you sure you want to leave the event?</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity style={[ts.modalBtn, { flex: 1, borderColor: '#ccc' }]} onPress={() => setLeaveModal(false)}>
+                <Text style={ts.modalBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[ts.modalBtn, { flex: 1, backgroundColor: '#cc0000', borderColor: '#cc0000' }]} onPress={() => { setLeaveModal(false); doLeave(); }}>
+                <Text style={[ts.modalBtnText, { color: WHITE }]}>Leave</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -82,8 +102,14 @@ const ts = StyleSheet.create({
   countdown: { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', letterSpacing: 1, color: GREEN, flexShrink: 0 },
   urgent:    { color: RED },
   ended:     { color: RED },
-  leaveBtn:  { paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#ccc', flexShrink: 0 },
-  leaveTxt:  { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
+  leaveBtn:     { paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#ccc', flexShrink: 0 },
+  leaveTxt:     { fontFamily: MONO, fontSize: 10, color: GRAY, letterSpacing: 1 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalCard:    { backgroundColor: WHITE, borderTopWidth: 2, borderTopColor: BLACK, padding: 24 },
+  modalTitle:   { fontFamily: MONO, fontSize: 12, letterSpacing: 4, color: BLACK, marginBottom: 12 },
+  modalText:    { fontFamily: MONO, fontSize: 12, color: GRAY, marginBottom: 20, letterSpacing: 1 },
+  modalBtn:     { paddingVertical: 12, alignItems: 'center', borderWidth: 1 },
+  modalBtnText: { fontFamily: MONO, fontSize: 12, letterSpacing: 2, color: BLACK },
 });
 
 export default function App() {
