@@ -76,7 +76,7 @@ export default function RadarScreen({ navigation }: any) {
     return (
       <>
         {activeChats.map(c => {
-          const hasAlert = c.last_sender_id && c.last_sender_id !== myStickerId;
+          const hasAlert = c.last_sender_id && c.last_sender_id !== myIdRef.current;
           return (
             <TouchableOpacity
               key={c.id}
