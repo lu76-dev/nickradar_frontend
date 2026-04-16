@@ -857,8 +857,12 @@ async function loadAccount() {
     var bTypeLabel=bTypeLabels[a.business_type]||a.business_type||'—';
     var hasBilling=!!(a.street&&a.street_number&&a.postal_code&&a.city);
     el.innerHTML='<div style="max-width:440px;">'
+      +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #000;background:#f9f9f9;padding:12px;display:flex;gap:8px;">'
+      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">CUSTOMER ID</div><div style="font-size:12px;font-weight:bold;letter-spacing:2px;color:#000;">EA-'+String(a.id).padStart(4,'0')+'</div></div>'
+      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">MEMBER SINCE</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.created_at?new Date(a.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>'
+      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">LAST LOGIN</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.last_login_at?new Date(a.last_login_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>'
+      +'</div>'
       +'<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">'
-      +'<div class="form-row"><label>Customer ID</label><input type="text" value="EA-'+String(a.id).padStart(4,'0')+'" disabled style="'+ro+'" /></div>'
       +'<div class="form-row"><label>Company Name</label><input type="text" value="'+esc(a.org_name||'')+'" disabled style="'+ro+'" /></div>'
       +'<div class="form-row"><label>Contact Person</label><input type="text" value="'+esc(a.contact_name||'')+'" disabled style="'+ro+'" /></div>'
       +'<div class="form-row"><label>Business Type</label><input type="text" value="'+esc(bTypeLabel)+'" disabled style="'+ro+'" /></div>'

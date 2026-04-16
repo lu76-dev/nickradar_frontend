@@ -208,6 +208,10 @@ async function openEaModal(id) {
     var a = d.admins.find(function(x){ return x.id===id; });
     if (!a) { alert('Admin not found.'); return; }
     document.getElementById('modal-ea-name').textContent = 'EA-'+String(a.id).padStart(4,'0')+' · '+a.org_name;
+    document.getElementById('m-ea-info').innerHTML =
+      '<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">CUSTOMER ID</div><div style="font-size:12px;font-weight:bold;letter-spacing:2px;color:#000;">EA-'+String(a.id).padStart(4,'0')+'</div></div>'
+      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">MEMBER SINCE</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.created_at?new Date(a.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>'
+      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">LAST LOGIN</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.last_login_at?new Date(a.last_login_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>';
     document.getElementById('m-org-name').value = a.org_name||'';
     document.getElementById('m-contact-name').value = a.contact_name||'';
     document.getElementById('m-business-type').value = a.business_type||'';
@@ -561,7 +565,7 @@ async function loadInvoices() {
 <div class="modal-overlay" id="ea-modal">
   <div class="modal-box">
     <div class="modal-title">Modify EA Data — <span id="modal-ea-name"></span></div>
-
+    <div id="m-ea-info" style="display:flex;gap:8px;background:#f9f9f9;padding:12px;margin-bottom:16px;border-bottom:2px solid #000;"></div>
     <div class="modal-section">Account Info</div>
     <div class="modal-row"><label>Company Name</label><input type="text" id="m-org-name" /></div>
     <div class="modal-row"><label>Contact Person</label><input type="text" id="m-contact-name" /></div>
