@@ -418,11 +418,9 @@ async function checkBillingStatus() {
     if (!d.success) return;
     var a = d.admin;
     var hasBilling = !!(a.street && a.street_number && a.postal_code && a.city);
-    if (!hasBilling) {
-      alertBox.style.display = 'block';
-      alertBox.style.background = '#fff5f5';
-      alertBox.style.borderColor = '#ffcccc';
-      alertBox.style.color = '#cc0000';
+
+    if (!hasBilling || a.status === 'verified') {
+      alertBox.style.cssText = 'display:block;background:#fff5f5;border:1px solid #ffcccc;padding:12px 14px;max-width:440px;margin-bottom:20px;font-size:11px;color:#cc0000;line-height:1.6;';
       alertBox.innerHTML = '';
       alertBox.appendChild(document.createTextNode('⚠ Please complete your billing information before creating an event. '));
       var lnk = document.createElement('strong');
@@ -433,18 +431,12 @@ async function checkBillingStatus() {
       wrap.style.opacity = '0.4';
       wrap.style.pointerEvents = 'none';
     } else if (a.status === 'review') {
-      alertBox.style.display = 'block';
-      alertBox.style.background = '#fff8f0';
-      alertBox.style.borderColor = '#ffaa44';
-      alertBox.style.color = '#cc6600';
+      alertBox.style.cssText = 'display:block;background:#fff8f0;border:1px solid #ffaa44;padding:12px 14px;max-width:440px;margin-bottom:20px;font-size:11px;color:#cc6600;line-height:1.6;';
       alertBox.innerHTML = '⏳ We are currently reviewing your information. This can take up to 24 hours — please refresh this page shortly.';
       wrap.style.opacity = '0.4';
       wrap.style.pointerEvents = 'none';
     } else if (a.status === 'active') {
-      alertBox.style.display = 'block';
-      alertBox.style.background = '#f0fff4';
-      alertBox.style.borderColor = '#00cc44';
-      alertBox.style.color = '#007722';
+      alertBox.style.cssText = 'display:block;background:#f0fff4;border:1px solid #00cc44;padding:12px 14px;max-width:440px;margin-bottom:20px;font-size:11px;color:#007722;line-height:1.6;';
       alertBox.innerHTML = '✓ Your account is active. You can create a new event.';
       wrap.style.opacity = '1';
       wrap.style.pointerEvents = 'auto';
@@ -927,7 +919,7 @@ async function doSaveBilling() {
     var d=await r.json();
     if (!d.success) { msg.textContent=d.error; return; }
     msg.style.color='green'; msg.textContent='✓ Saved.';
-    setTimeout(function(){ showTab('new-event'); checkBillingStatus(); }, 800);
+    setTimeout(function(){ showTab('create'); checkBillingStatus(); }, 800);
   } catch(e) { msg.textContent='Connection error.'; }
 }
 
