@@ -185,8 +185,7 @@ async function loadEventAdmins() {
     var rows=d.admins.map(function(a){
       var actions='';
       if (a.status==='pending') actions+='<span style="font-size:10px;color:#999;letter-spacing:1px;">⏳ Email not verified</span> ';
-      if (a.status==='verified') actions+='<span style="font-size:10px;color:#999;letter-spacing:1px;">⏳ Billing pending</span> ';
-      if (a.status==='review') actions+='<button class="btn-sm-green" onclick="toggleEAStatus('+a.id+',\'review\')">✓ Activate</button> ';
+      if (a.status==='review') actions+='<span style="font-size:10px;color:#cc6600;letter-spacing:1px;margin-right:6px;">⏳ Billing Info pending</span><button class="btn-sm-green" onclick="toggleEAStatus('+a.id+',\'review\')">✓ Activate</button> ';
       if (a.status==='active') actions+='<button class="btn-sm" style="border-color:#cc6600;color:#cc6600;" onclick="toggleEAStatus('+a.id+',\'active\')">⟳ Deactivate</button> ';
       if (a.status!=='deleted') actions+='<button class="btn-sm" onclick="openEaModal('+a.id+')">Modify EA Data</button>';
       var eaNum='EA-'+String(a.id).padStart(4,'0');
