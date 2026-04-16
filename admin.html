@@ -186,7 +186,8 @@ async function loadEventAdmins() {
       var actions='';
       if (a.status==='pending') actions+='<span style="font-size:10px;color:#999;letter-spacing:1px;">⏳ Email not verified</span> ';
       if (a.status==='verified') actions+='<span style="font-size:10px;color:#999;letter-spacing:1px;">⏳ Billing pending</span> ';
-      if (a.status==='review') actions+='<button class="btn-sm-green" onclick="activateEA('+a.id+')">✓ Activate</button> ';
+      if (a.status==='review') actions+='<button class="btn-sm-green" onclick="toggleEAStatus('+a.id+',\'review\')">✓ Activate</button> ';
+      if (a.status==='active') actions+='<button class="btn-sm" style="border-color:#cc6600;color:#cc6600;" onclick="toggleEAStatus('+a.id+',\'active\')">⟳ Deactivate</button> ';
       if (a.status!=='deleted') actions+='<button class="btn-sm" onclick="openEaModal('+a.id+')">Modify EA Data</button>';
       var eaNum='EA-'+String(a.id).padStart(4,'0');
       var statusLabels={pending:'PENDING',verified:'VERIFIED',review:'REVIEW',active:'ACTIVE',deleted:'DELETED',blocked:'BLOCKED'};
@@ -204,10 +205,13 @@ async function loadEventAdmins() {
 
 var currentEaId = null;
 
-async function activateEA(id) {
-  if (!confirm('Activate this Event Admin?')) return;
+async function toggleEAStatus(id, currentStatus) {
+  var toStatus = currentStatus === 'review' ? 'active' : 'review';
+  var msg = currentStatus === 'review' ? 'Activate this Event Admin?' : 'Deactivate this Event Admin? They will see the orange review banner again.';
+  if (!confirm(msg)) return;
+  var endpoint = currentStatus === 'review' ? 'activate' : 'deactivate-to-review';
   try {
-    var r = await fetch(API+'/api/admin/event-admin/'+id+'/activate', {method:'POST', headers:{'x-admin-key':adminKey}});
+    var r = await fetch(API+'/api/admin/event-admin/'+id+'/'+endpoint, {method:'POST', headers:{'x-admin-key':adminKey}});
     var d = await r.json();
     if (d.success) loadEventAdmins();
     else alert('Error: '+d.error);
