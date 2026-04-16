@@ -210,7 +210,7 @@ async function openEaModal(id) {
     document.getElementById('modal-ea-name').textContent = a.org_name;
     document.getElementById('m-ea-info').innerHTML =
       '<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">CUSTOMER ID</div><div style="font-size:12px;font-weight:bold;letter-spacing:2px;color:#000;">EA-'+String(a.id).padStart(4,'0')+'</div></div>'
-      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">MEMBER SINCE</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.created_at?new Date(a.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>'
+      +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">REGISTERED SINCE</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.created_at?new Date(a.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>'
       +'<div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:#999;margin-bottom:4px;">LAST LOGIN</div><div style="font-size:12px;font-weight:bold;color:#000;">'+(a.last_login_at?new Date(a.last_login_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—')+'</div></div>';
     document.getElementById('m-org-name').value = a.org_name||'';
     document.getElementById('m-contact-name').value = a.contact_name||'';
