@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Image, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getSessionToken, getMe, clearSession, leaveEvent } from './api';
+import { getSessionToken, getMe, getChats, clearSession, leaveEvent } from './api';
 import AuthScreen from './auth';
 import SearchScreen from './search';
 import RadarScreen from './radar';
@@ -117,6 +117,30 @@ export default function App() {
   const [event, setEvent] = useState<{ event_name: string; ends_at: string } | null>(null);
   const [radarAlert, setRadarAlert] = useState(false);
   const [updateBanner, setUpdateBanner] = useState<string|null>(null);
+  const myIdRef = React.useRef<number | null>(null);
+  const radarPollRef = React.useRef<any>(null);
+
+  useEffect(() => {
+    if (!event) {
+      setRadarAlert(false);
+      if (radarPollRef.current) clearInterval(radarPollRef.current);
+      return;
+    }
+    const pollRadar = async () => {
+      try {
+        const c = await getChats();
+        if (c.success) {
+          const unread = (c.chats || []).filter((ch: any) =>
+            ch.status === 'active' && ch.last_sender_id && ch.last_sender_id !== myIdRef.current
+          ).length;
+          setRadarAlert(unread > 0);
+        }
+      } catch {}
+    };
+    pollRadar();
+    radarPollRef.current = setInterval(pollRadar, 2000);
+    return () => clearInterval(radarPollRef.current);
+  }, [event]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
@@ -149,6 +173,7 @@ export default function App() {
     if (!token) { setInitialRoute('Auth'); return; }
     getMe().then(d => {
       if (d.success) {
+        myIdRef.current = d.participant.sticker_id || null;
         setEvent({ event_name: d.participant.event_name, ends_at: d.participant.ends_at, org_name: d.participant.org_name, start_at: d.participant.start_at, timezone: d.participant.timezone });
         setInitialRoute('Radar');
       } else {
