@@ -279,8 +279,8 @@
         </select>
       </div>
       <div class="form-row">
-        <label>Number of Participants / Stickers (min. 24)</label>
-        <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="24" max="10000" oninput="updatePrice()" />
+        <label>Number of Participants / Stickers (min. 12)</label>
+        <input type="number" id="new-sticker-count" placeholder="e.g. 100" min="12" max="10000" oninput="updatePrice()" />
         <div class="hint" id="price-hint">Enter quantity to see price.</div>
       </div>
 
@@ -496,19 +496,18 @@ async function doRegister() {
 function doLogout() { localStorage.removeItem('nr_ea_token'); token=null; adminData=null; showScreen('login'); }
 
 function calcPrice(count) {
-  if (count>=5000) return count*0.40;
-  if (count>=2000) return count*0.50;
-  if (count>=1000) return count*0.60;
-  if (count>=500)  return count*0.70;
-  if (count>=200)  return count*0.80;
-  if (count>=100)  return count*0.90;
-  return count*1.00;
+  if (count>=5000) return count*0.90;
+  if (count>=1000) return count*1.00;
+  if (count>=500)  return count*1.10;
+  if (count>=200)  return count*1.20;
+  if (count>=100)  return count*1.30;
+  return count*1.50;
 }
 
 function updatePrice() {
   var count=parseInt(document.getElementById('new-sticker-count').value);
   var hint=document.getElementById('price-hint');
-  if (!count||count<24) { hint.style.color='#cc0000'; hint.textContent='Minimum 24 stickers.'; return; }
+  if (!count||count<12) { hint.style.color='#cc0000'; hint.textContent='Minimum 12 stickers.'; return; }
   var price=calcPrice(count);
   hint.style.color='#666';
   hint.textContent=count+' stickers → €'+price.toFixed(2)+' (€'+(price/count).toFixed(2)+' / sticker)';
@@ -525,7 +524,7 @@ async function doCreateEvent() {
   msg.style.color='red'; msg.textContent='';
   if (!eventName) { msg.textContent='Event name required.'; return; }
   if (!startAt) { msg.textContent='Start time required.'; return; }
-  if (!count||count<24) { msg.textContent='Minimum 24 stickers.'; return; }
+  if (!count||count<12) { msg.textContent='Minimum 12 stickers.'; return; }
   if (!confirmTerms) { msg.textContent='Please accept the Terms & Conditions and Privacy Policy.'; return; }
   if (!confirmPayment) { msg.textContent='Please confirm the non-refundable payment policy.'; return; }
   var termsAcceptedAt=new Date().toISOString();
